@@ -1,0 +1,14 @@
+{
+  "name": "dojo-hardhat-project",
+  "version": "1.0.0",
+  "description": "A harhdhat project for M.A.D-DOJO with smart contracts and tests",
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "author": "M.A.D : Milutin, Adrien, Damien",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.12.4"
+  }
+}
