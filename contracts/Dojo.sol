@@ -1,57 +1,87 @@
 pragma solidity ^0.8.17;
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Dojo {
-    address public owner;
-    mapping(address => uint) public numFighters;
-    mapping(address => Fighter[]) public fighters;
+contract Dojo is Ownable {
+    event NewFighter(uint fighterId, string name);
+
+    Fighter[] public fighters;
+    mapping(uint => address) public fighterToOwner;
+    mapping(address => uint) ownerFighterCount;
 
     struct Fighter {
         uint level;
         uint health;
         uint lives;
         uint strength;
+        uint wins;
+        uint losses;
         string name;
     }
 
-    constructor() {
-        owner = msg.sender;
-    }
-
     function createFighter(uint _level, uint _health, uint _lives, uint _strength, string memory _name) public {
-        Fighter memory fighter = Fighter(_level, _health, _lives, _strength, _name);
-        fighters[msg.sender].push(fighter);
-        numFighters[msg.sender]++;
+        uint id = fighters.length;
+        fighters.push(Fighter(_level, _health, _lives, _strength, 0, 0, _name));
+        fighterToOwner[id] = msg.sender;
+        ownerFighterCount[msg.sender]++;
+        emit NewFighter(id, _name);
     }
 
     //TODO: Implement the function, better verification of the fighter Owner
-    function exchangeFighters(address _from, address _to) public {
-        require(numFighters[_from] > 0, "The sender has no fighters");
-        require(numFighters[_to] > 0, "The receiver has no fighters");
+    function _transfer(address _from, address _to, uint _fighterId) internal {
+        ownerFighterCount[_to]++;
+        ownerFighterCount[msg.sender]--;
+        fighterToOwner[_fighterId] = _to;
+    }
 
-        Fighter memory fighter = fighters[_from][0];
-        fighters[_from][0] = fighters[_to][0];
-        fighters[_to][0] = fighter;
+    function transfer(address _to, uint _fighterId) public {
+        require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
+        _transfer(msg.sender, _to, _fighterId);
     }
 
     //TODO: Implement the function
-    function combat(address _address1, uint _index1, address _address2, uint _index2) public {
-        require(_address1 != _address2, "Cannot fight with the same address");
-        require(_index1 < numFighters[_address1], "Invalid index for fighter from");
-        require(_index2 < numFighters[_address2], "Invalid index for fighter to");
+    function fight(uint _fighterId, uint _targetId) public {}
 
-        Fighter storage fighter1 = fighters[_address1][_index1];
-        Fighter storage fighter2 = fighters[_address2][_index2];
-
-        // Modify fighter attributes based on the outcome of the combat
-        // ...
+    function getOwnerFighters() public view returns (Fighter[] memory) {
+        Fighter[] memory result = new Fighter[](ownerFighterCount[msg.sender]);
+        uint counter = 0;
+        for (uint i = 0; i < fighters.length; i++) {
+            if (fighterToOwner[i] == msg.sender) {
+                result[counter] = fighters[i];
+                counter++;
+            }
+        }
+        return result;
     }
 
-    function getNumFighters(address _owner) public view returns (uint) {
-        return numFighters[_owner];
+    function getSpecificOwnerFighters(address _owner) public view returns (Fighter[] memory) {
+        Fighter[] memory result = new Fighter[](ownerFighterCount[_owner]);
+        uint counter = 0;
+        for (uint i = 0; i < fighters.length; i++) {
+            if (fighterToOwner[i] == _owner) {
+                result[counter] = fighters[i];
+                counter++;
+            }
+        }
+        return result;
     }
 
-    function getFighter(address _owner, string _name) public view returns (Fighter memory) {
-        require(_index < numFighters[_owner], "Invalid index for fighter");
-        return fighters[_owner][_index];
+    function getFighterById(uint _id) public view returns (Fighter memory) {
+        return fighters[_id];
+    }
+
+    function getFighterCount() public view returns (uint) {
+        return fighters.length;
+    }
+
+    function getFighterOwner(uint _id) public view returns (address) {
+        return fighterToOwner[_id];
+    }
+
+    function getFighterOwnerCount(address _owner) public view returns (uint) {
+        return ownerFighterCount[_owner];
+    }
+
+    function getFighters() public view returns (Fighter[] memory) {
+        return fighters;
     }
 }

@@ -24,19 +24,69 @@ describe("Dojo Smart Contract Test", function () {
         });
     });
 
-    it("should create a new fighter", async function () {
-        const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+    describe("Creation", function () {
+        it("should create a new fighter", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-        await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-        const numFighters = await hardhatDojo.getNumFighters(owner.address);
-        expect(numFighters).to.equal(1);
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
+            const numFighters = await hardhatDojo.getFighterOwnerCount(owner.address);
+            expect(numFighters).to.equal(1);
 
-        const fighter = await hardhatDojo.getFighter(owner.address, 0);
-        expect(fighter.level).to.equal(1);
-        expect(fighter.health).to.equal(100);
-        expect(fighter.lives).to.equal(3);
-        expect(fighter.strength).to.equal(50);
-        expect(fighter.name).to.equal("Fighter1");
+            const fighter = await hardhatDojo.getFighterById(0);
+            expect(fighter.level).to.equal(1);
+            expect(fighter.health).to.equal(100);
+            expect(fighter.lives).to.equal(3);
+            expect(fighter.strength).to.equal(50);
+            expect(fighter.name).to.equal("Fighter1");
+        });
+    });
+
+    describe("View Method", function () {
+        it("should return the right number of fighters", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+            const numFighters = await hardhatDojo.getFighterCount();
+            expect(numFighters).to.equal(3);
+        });
+        it("should return the right fighter", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+
+            const fighter = await hardhatDojo.getFighterById(1);
+            expect(fighter.level).to.equal(1);
+            expect(fighter.health).to.equal(100);
+            expect(fighter.lives).to.equal(3);
+            expect(fighter.strength).to.equal(50);
+            expect(fighter.name).to.equal("Fighter2");
+        });
+        it("should return the list of fighters for a specific address", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+
+            const fighters = await hardhatDojo.getSpecificOwnerFighters(owner.address);
+            console.log(fighters);
+            expect(fighters.length).to.equal(3);
+        });
+        it("should return the list of my fighters", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
+            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+
+            const fighters = await hardhatDojo.getOwnerFighters({from: owner.address});
+            console.log(fighters);
+            expect(fighters.length).to.equal(3);
+        });
     });
 });
 
