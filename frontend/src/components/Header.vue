@@ -21,12 +21,7 @@
         </div>
         <!-- Secondary Nav -->
         <div class="hidden md:flex items-center space-x-3">
-          <button v-on:click="connectWallet()" v-if="!useStore().isConnected" class="bg-neutral-300 hover:bg-red-600 text-black px-2 py-2 font-bold rounded">
-            Connect Wallet
-          </button>
-          <button v-on:click="disconnectWallet()" v-if="useStore().isConnected" class="bg-neutral-300 hover:bg-red-600 text-black px-2 py-2 font-bold rounded">
-            Disconnect Wallet
-          </button>
+          <ConnectWalletButton v-bind:address="store.account" v-on:click="connectWallet"/>
         </div>
       </div>
     </div>
@@ -35,21 +30,21 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useStore } from "../store/store";
+import { accountStore } from "../store/store";
+import { ConnectWalletButton } from "vue-connect-wallet";
 export default defineComponent({
   name: "Header",
+  components: {
+    ConnectWalletButton,
+  },
   data() {
     return {
+      store: accountStore(),
     };
   },
   methods: {
-    useStore,
-    async connectWallet() {
-      console.log("connectWallet");
-      await useStore().connectWallet();
-    },
-    disconnectWallet() {
-      console.log("disconnectWallet");
+    connectWallet() {
+      this.store.connectWallet();
     },
   },
 });

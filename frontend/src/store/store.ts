@@ -2,13 +2,18 @@
 
 import { defineStore } from 'pinia'
 import Web3 from "web3";
-export const useStore = defineStore({
-    id: 'store',
-    state: () => ({
-        account: '',
-        balance: '',
-        isConnected: false,
-    }),
+import { useCookies } from "vue3-cookies";
+const { cookies } = useCookies();
+import { useMetaMaskWallet } from "vue-connect-wallet";
+const wallet = useMetaMaskWallet();
+export const accountStore = defineStore('accountStore',{
+    state: () => {
+        return {
+            account: '',
+            balance: '',
+            isConnected: false,
+        }
+    },
     getters: {
         getAccount: (state) => {
             return state.account;
@@ -22,19 +27,26 @@ export const useStore = defineStore({
     },
     actions: {
         async connectWallet() {
-            if ((window as any).ethereum) {
-                try {
-                    const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-                    this.account = accounts[0];
-                    console.log(this.account);
-                    const web3 = new Web3((window as any).ethereum);
-                    this.balance = await web3.eth.getBalance(this.account);
-                    console.log(this.balance);
-                    this.isConnected = true;
-                } catch (error) {
-                    console.error(error);
-                }
+            const accounts = await wallet.connect();
+            if (typeof accounts === "string") {
+                console.log("An error occurred" + accounts);
             }
-        }
-    }
+            this.account = accounts[0];
+            cookies.set('account', this.account);
+            this.isConnected = true;
+        },
+        async switchWallet() {
+            await wallet.switchAccounts();
+            await this.connectWallet();
+        },
+        async disconnectWallet() {
+            console.log("disconnectWallet");
+        },
+        // async isConnected() {
+        //     const accounts = await wallet.getAccounts();
+        //     if (typeof accounts === "string") return false;
+        //     return accounts.length > 0;
+        // }
+    },
+    persist: true,
 })
