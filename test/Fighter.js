@@ -24,8 +24,10 @@ describe("Fighter Smart Contract Test", function () {
 
         it("Should return the owner of the token", async function () {
             const { hardhatFighter, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-            await hardhatFighter.createFighter(50, 50, 50, 100, 100, 50, 50, 50, 1, "Fighter 1", { from: owner.address });
-            expect(await hardhatFighter.ownerOf(0)).to.equal(owner.address);
+            await hardhatFighter.connect(addr1).createFighter({ from: addr1.address });
+            await hardhatFighter.connect(addr2).createFighter({ from: addr2.address });
+            expect(await hardhatFighter.ownerOf(0)).to.equal(addr1.address);
+            expect(await hardhatFighter.ownerOf(1)).to.equal(addr2.address);
         });
     });
 });

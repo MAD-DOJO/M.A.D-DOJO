@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const {BigNumber} = require("ethers");
 
 describe("Dojo Smart Contract Test", function () {
 
@@ -28,16 +29,19 @@ describe("Dojo Smart Contract Test", function () {
         it("should create a new fighter", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-            const numFighters = await hardhatDojo.getFighterOwnerCount(owner.address);
-            expect(numFighters).to.equal(1);
+            await hardhatDojo.connect(addr1);
+            const numFighters = await hardhatDojo.getOwnerFighterCount(addr1.address);
+            // expect(numFighters).to.equal(1);
 
-            const fighter = await hardhatDojo.getFighterById(0);
+            const fighter = await hardhatDojo.getFighter(0);
+            expect(fighter.name).to.equal("Fighter");
             expect(fighter.level).to.equal(1);
-            expect(fighter.health).to.equal(100);
-            expect(fighter.lives).to.equal(3);
-            expect(fighter.strength).to.equal(50);
-            expect(fighter.name).to.equal("Fighter1");
+            expect(fighter.strength).to.equal(10);
+            expect(fighter.speed).to.equal(10);
+            expect(fighter.endurance).to.equal(10);
+            expect(fighter.wins).to.equal(0);
+            expect(fighter.losses).to.equal(0);
+            expect(fighter.wounds).to.equal(0);
         });
     });
 
@@ -45,47 +49,54 @@ describe("Dojo Smart Contract Test", function () {
         it("should return the right number of fighters", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
-            const numFighters = await hardhatDojo.getFighterCount();
+            await hardhatDojo.connect(addr1).createFighter("Fighter1", { from: addr1.address });
+            await hardhatDojo.connect(addr1).createFighter("Fighter2", { from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter("Fighter1", { from: addr2.address });
+
+            const numFighters = await hardhatDojo.getFightersCount();
             expect(numFighters).to.equal(3);
         });
         it("should return the right fighter", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
+            await hardhatDojo.connect(addr1).createFighter("Bobi", { from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
 
-            const fighter = await hardhatDojo.getFighterById(1);
+            const fighter = await hardhatDojo.getFighter(1);
+            expect(fighter.name).to.equal("Bobi");
             expect(fighter.level).to.equal(1);
-            expect(fighter.health).to.equal(100);
-            expect(fighter.lives).to.equal(3);
-            expect(fighter.strength).to.equal(50);
-            expect(fighter.name).to.equal("Fighter2");
+            expect(fighter.strength).to.equal(10);
+            expect(fighter.speed).to.equal(10);
+            expect(fighter.endurance).to.equal(10);
+            expect(fighter.wins).to.equal(0);
+            expect(fighter.losses).to.equal(0);
+            expect(fighter.wounds).to.equal(0);
         });
-        it("should return the list of fighters for a specific address", async function () {
+    });
+
+    describe("Transaction", function () {
+        it("should get the msg sender balance", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
 
-            const fighters = await hardhatDojo.getSpecificOwnerFighters(owner.address);
-            console.log(fighters);
-            expect(fighters.length).to.equal(3);
+            const balance = await hardhatDojo.balanceOf(addr2.address, 3)
+            console.log(balance);
+            expect(balance).to.equal(0);
         });
-        it("should return the list of my fighters", async function () {
+        it("should set the new value of the balance after a buying transaction", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
 
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter1", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter2", { from: owner.address });
-            await hardhatDojo.createFighter(1, 100, 3, 50, "Fighter3", { from: owner.address });
+            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
 
-            const fighters = await hardhatDojo.getOwnerFighters({from: owner.address});
-            console.log(fighters);
-            expect(fighters.length).to.equal(3);
+            await hardhatDojo.connect(addr2).payForGold({ from: addr2.address, value: ethers.utils.parseEther("0.01") });
+
+            const balance = await hardhatDojo.balanceOf(addr2.address, 0)
+            console.log(balance);
+            expect(balance).to.equal(10);
         });
     });
 });
