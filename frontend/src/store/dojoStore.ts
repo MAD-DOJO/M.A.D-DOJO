@@ -6,9 +6,15 @@ export const dojoStore = defineStore('dojoStore',{
             fighters: [
                 {
                     name: 'Ryu',
+                    image: 'src/assets/card/ninja.jpg',
                 },
                 {
                     name: 'Ken',
+                    image: 'src/assets/card/ninja2.jpg',
+                },
+                {
+                    name: 'Ken',
+                    image: 'src/assets/card/ninja3.jpg',
                 }
             ],
         }

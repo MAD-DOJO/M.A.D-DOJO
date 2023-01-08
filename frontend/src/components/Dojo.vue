@@ -1,9 +1,10 @@
 <template>
   <vue-final-modal v-model="showSelectFighterModal" classes="modal-container" content-class="modal-content">
     <button class="modal__close" @click="showSelectFighterModal = false">X</button>
-    <span class="modal__title">Recruter une Brute</span>
+    <span class="modal__title">Recruter un Combattant</span>
     <div class="modal__content">
-      <select-fighter></select-fighter>
+      <p>Merci de choisir un combattant parmi la liste. La liste des combattants disponibles change chaque jour et est unique pour chaque joueur :</p>
+      <select-fighter class="pt-2"></select-fighter>
     </div>
   </vue-final-modal>
   <vue-final-modal v-model="showFighterDetailModal" classes="modal-container" content-class="modal-content">

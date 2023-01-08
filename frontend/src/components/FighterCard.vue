@@ -1,7 +1,7 @@
 <template>
   <div v-bind:class="isWithDetails ? 'flex':''" class="rounded-2xl bg-gray-300 border-4 border-red-600">
     <div>
-      <img src="src/assets/card/fighter.svg" class="m-2">
+      <img v-bind:src="fighter.image" class="rounded-t-lg">
       <div class="bg-red-600" v-bind:class="isWithDetails ? '': 'rounded-b-lg'">
         <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.name }}</p>
       </div>

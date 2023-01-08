@@ -1,6 +1,6 @@
 <template>
   <div class="pt-10">
-    <div class="container mx-auto flex justify-center bg-slate-50 border-b rounded-2xl hover:bg-gray-300">
+    <div class="container mx-auto flex justify-center bg-slate-50 border-b rounded-2xl hover:bg-gray-300 ">
       <div class="pr-20">
         <img src="../assets/home/dojo.png" class="h-48">
       </div>
