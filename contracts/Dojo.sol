@@ -4,8 +4,12 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Dojo is Ownable, ERC1155 {
+
+    using SafeMath for uint256;
+
     event NewFighter(uint fighterId, string name);
     // event pour les GOLD
     event NewGold(uint goldId, string name);
@@ -28,7 +32,7 @@ contract Dojo is Ownable, ERC1155 {
     Fighter[] public fighters;
 
     // Mapping qui associe chaque combattant à son propriétaire
-    mapping (uint256 => address) private fighterToOwner;
+    mapping (uint256 => address) fighterToOwner;
     mapping(address => uint) ownerFighterCount;
 
     // Fonction qui permet de créer un nouveau combattant

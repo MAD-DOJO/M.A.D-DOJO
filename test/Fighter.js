@@ -17,11 +17,6 @@ describe("Fighter Smart Contract Test", function () {
     }
 
     describe("ERC721", function () {
-        it("Should be ERC721", async function () {
-            const { hardhatFighter, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-            expect(await hardhatFighter.supportsInterface("0x80ac58cd")).to.equal(true);
-        });
-
         it("Should return the owner of the token", async function () {
             const { hardhatFighter, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
             await hardhatFighter.connect(addr1).createFighter({ from: addr1.address });
