@@ -1,7 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const {BigNumber} = require("ethers");
 
 describe("Dojo Smart Contract Test", function () {
 
@@ -25,78 +24,69 @@ describe("Dojo Smart Contract Test", function () {
         });
     });
 
-    describe("Creation", function () {
-        it("should create a new fighter", async function () {
+    describe("Create Fighter", function () {
+        it("should create a new fighter when the contract is called by a user who does not already have a fighter", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-
-            await hardhatDojo.connect(addr1);
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
             const numFighters = await hardhatDojo.getOwnerFighterCount(addr1.address);
-            // expect(numFighters).to.equal(1);
-
+            expect(numFighters).to.equal(1);
             const fighter = await hardhatDojo.getFighter(0);
-            expect(fighter.name).to.equal("Fighter");
+            expect(fighter.name).to.equal("Fighter#0");
             expect(fighter.level).to.equal(1);
-            expect(fighter.strength).to.equal(10);
-            expect(fighter.speed).to.equal(10);
-            expect(fighter.endurance).to.equal(10);
             expect(fighter.wins).to.equal(0);
             expect(fighter.losses).to.equal(0);
             expect(fighter.wounds).to.equal(0);
         });
-    });
-
-    describe("View Method", function () {
-        it("should return the right number of fighters", async function () {
+        it('should reverts if the contract is called by a user who already has a fighter', async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-
-            await hardhatDojo.connect(addr1).createFighter("Fighter1", { from: addr1.address });
-            await hardhatDojo.connect(addr1).createFighter("Fighter2", { from: addr1.address });
-            await hardhatDojo.connect(addr2).createFighter("Fighter1", { from: addr2.address });
-
-            const numFighters = await hardhatDojo.getFightersCount();
-            expect(numFighters).to.equal(3);
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            await expect(
+                hardhatDojo.connect(addr1).createFighter({ from: addr1.address })
+            ).to.be.revertedWith("You already have a fighter, pay to create a new one");
         });
-        it("should return the right fighter", async function () {
+        it("should generate random stats between 1 and 5", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-
-            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
-            await hardhatDojo.connect(addr1).createFighter("Bobi", { from: addr1.address });
-            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
-
-            const fighter = await hardhatDojo.getFighter(1);
-            expect(fighter.name).to.equal("Bobi");
-            expect(fighter.level).to.equal(1);
-            expect(fighter.strength).to.equal(10);
-            expect(fighter.speed).to.equal(10);
-            expect(fighter.endurance).to.equal(10);
-            expect(fighter.wins).to.equal(0);
-            expect(fighter.losses).to.equal(0);
-            expect(fighter.wounds).to.equal(0);
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            const fighter = await hardhatDojo.getFighter(0);
+            expect(fighter.strength).to.be.greaterThan(0);
+            expect(fighter.strength).to.be.lessThan(11);
+            expect(fighter.speed).to.be.greaterThan(0);
+            expect(fighter.speed).to.be.lessThan(11);
+            expect(fighter.endurance).to.be.greaterThan(0);
+            expect(fighter.endurance).to.be.lessThan(11);
         });
     });
 
-    describe("Transaction", function () {
-        it("should get the msg sender balance", async function () {
+    describe("Pay For Gold", function () {
+        it("should add gold to the user's account when they pay for gold", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
-
-            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
-            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
-
-            const balance = await hardhatDojo.balanceOf(addr2.address, 3)
-            console.log(balance);
-            expect(balance).to.equal(0);
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+            const gold = await hardhatDojo.getGoldBalance(addr1.address);
+            expect(gold).to.equal(10);
         });
-        it("should set the new value of the balance after a buying transaction", async function () {
+        it("should revert if the user does not pay enough to get gold", async function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+            await expect(
+                hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.001") })
+            ).to.be.revertedWith("You must pay at least 0.01 ETH to get gold");
+        });
+    });
 
-            await hardhatDojo.connect(addr1).createFighter("Sarah", { from: addr1.address });
-            await hardhatDojo.connect(addr2).createFighter("Sam", { from: addr2.address });
-
-            await hardhatDojo.connect(addr2).payForGold({ from: addr2.address, value: ethers.utils.parseEther("0.01") });
-
-            const balance = await hardhatDojo.balanceOf(addr2.address, 0)
-            console.log(balance);
-            expect(balance).to.equal(10);
+    describe("Pay For New Fighter", function () {
+        it("should create a new fighter when the user pays 5 golds for a new fighter and burn the gold", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+            const numFighters = await hardhatDojo.getOwnerFighterCount(addr1.address);
+            expect(numFighters).to.equal(1);
+            const gold = await hardhatDojo.getGoldBalance(addr1.address);
+            expect(gold).to.equal(5);
+        });
+        it("should revert if the user does not pay enough to get a new fighter", async function () {
+            const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+            await expect(
+                hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address })
+            ).to.be.revertedWith("You need to have 5 GOLD");
         });
     });
 });
