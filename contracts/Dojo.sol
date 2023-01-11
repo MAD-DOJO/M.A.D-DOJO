@@ -11,7 +11,6 @@ contract Dojo is Ownable, ERC1155 {
     using SafeMath for uint256;
 
     event NewFighter(uint fighterId, string name);
-    // event pour les GOLD
     event NewGold(uint goldId, string name);
 
     struct Fighter {
@@ -27,9 +26,9 @@ contract Dojo is Ownable, ERC1155 {
 
     constructor() ERC1155("") {}
 
-    uint256 public constant GOLD = 0;
+    uint256 private constant GOLD = 0;
     // Tableau qui contient tous les combattants
-    Fighter[] public fighters;
+    Fighter[] private fighters;
 
     // Mapping qui associe chaque combattant à son propriétaire
     mapping (uint256 => address) fighterToOwner;
@@ -74,14 +73,14 @@ contract Dojo is Ownable, ERC1155 {
     }
 
     // Fonction qui permet de payer pour créer un nouveau combattant si l'utilisateur détient déjà un combattant
-    function payToCreateFighter() public payable {
+    function payToCreateFighter() public {
         require(balanceOf(msg.sender, GOLD) >= 5, "You need to have 5 GOLD");
         _burn(msg.sender, GOLD, 5);
         _createFighter();
     }
 
     // Fonction pour payer lorsque le combattant arrive à 3 blessures pour le soigner et le remettre à 0 en payant 2 gold
-    function payToHealFighter(uint256 _fighterId) public payable {
+    function payToHealFighter(uint256 _fighterId) public {
         require(balanceOf(msg.sender, GOLD) >= 2, "You need to have 2 GOLD");
         require(fighterToOwner[_fighterId] == msg.sender, "You are not the owner of this fighter");
         require(fighters[_fighterId].wounds == 3, "Your fighter is not wounded");
@@ -120,4 +119,18 @@ contract Dojo is Ownable, ERC1155 {
     function getFightersCount() public view returns (uint) {
         return fighters.length;
     }
+
+    // Fonction qui permet de récupérer la liste des combattants du msg.sender
+    function getFighters() public view returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+        uint counter = 0;
+        for (uint i = 0; i < fighters.length; i++) {
+            if (fighterToOwner[i] == msg.sender) {
+                result[counter] = i;
+                counter++;
+            }
+        }
+        return result;
+    }
+
 }
