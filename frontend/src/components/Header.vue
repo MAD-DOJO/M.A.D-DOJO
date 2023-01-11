@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { accountStore } from "../store/store";
+import { accountStore } from "../store/accountStore";
 import { ConnectWalletButton } from "vue-connect-wallet";
 export default defineComponent({
   name: "Header",
