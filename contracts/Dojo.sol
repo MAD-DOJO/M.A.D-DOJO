@@ -13,6 +13,13 @@ contract Dojo is Ownable, ERC1155 {
     event NewFighter(uint fighterId, string name);
     event NewGold(uint goldId, string name);
 
+    // Modifier de méthode pour vérifier que l'adresse est celle du propriétaire du Fighter
+    modifier onlyOwnerOf(uint _fighterId) {
+        require(msg.sender == fighterToOwner[_fighterId]);
+        _;
+    }
+
+    // Structure de données pour les Fighters
     struct Fighter {
         string name;
         uint32 level;
@@ -24,6 +31,7 @@ contract Dojo is Ownable, ERC1155 {
         uint wounds;
     }
 
+    //TODO: Ajouter les images stockées sur IPFS pour les Fighters
     constructor() ERC1155("") {}
 
     uint256 private constant GOLD = 0;
@@ -133,4 +141,53 @@ contract Dojo is Ownable, ERC1155 {
         return result;
     }
 
+    //TODO: Implementer une méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
+    function fight() public {
+
+    }
+
+    //TODO: Implementer une méthode 'levelUp' permettant de monter de niveau un combattant et de payer 1 gold pour cela. Augmente une ou plusieurs stats du combattant aléatoirement
+    function levelUp() public {
+
+    }
+
+    //TODO: Implementer une methode afin de mettre en vente un token Fighter sur le marché uniquement si l'utilisateur possède plus d'un combattant
+    function putOnSale() public {
+
+    }
+
+    //TODO: Implementer une methode afin d'acheter un token Fighter sur le marché
+    function buyOnSale() public {
+
+    }
+
+    //TODO: implementer une methode pour récupérer la liste des combattants en vente
+    function getFightersOnSale() public view returns (uint256[] memory) {
+        return 0;
+    }
+
+    //TODO: implementer une methode pour récupérer la liste des combattants en vente d'un utilisateur
+    function getFightersOnSaleByUser() public view returns (uint256[] memory) {
+        return 0;
+    }
+
+    //TODO: implementer une méthode afin de proposer un échange de token à un utilisateur uniquement si l'utilisateur possède plus d'un combattant
+    function proposeExchange() public {
+
+    }
+
+    //TODO: implementer une méthode afin d'accepter un échange de token à un utilisateur
+    function acceptExchange() public {
+
+    }
+
+    //TODO: implementer les méthodes de transfer de Token Fighter ERC1155
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external override {
+
+    }
+
+    //TODO: implementer une methode d'appovals
+    function setApprovalForAll(address _operator, bool _approved) external override {
+
+    }
 }
