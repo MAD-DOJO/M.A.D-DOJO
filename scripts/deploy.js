@@ -11,7 +11,7 @@ async function main() {
   const Dojo = await ethers.getContractFactory("Dojo");
   const dojo = await Dojo.deploy();
 
-  console.log("Token address:", dojo.address);
+  console.log("Dojo address:", dojo.address);
 }
 
 main()
