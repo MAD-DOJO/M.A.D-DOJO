@@ -1,6 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require('dotenv').config();
+require('solidity-coverage');
 
 const { API_URL, PRIVATE_KEY } = process.env;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
