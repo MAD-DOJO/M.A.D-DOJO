@@ -89,5 +89,52 @@ describe("Dojo Smart Contract Test", function () {
             ).to.be.revertedWith("You need to have 5 GOLD");
         });
     });
+
+    describe("Fighting", function () {
+        let hardhatDojo, owner, addr1, addr2;
+        let winner, loser;
+        beforeEach(async function () {
+            ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            let fighter1 = await hardhatDojo.getFighter(0);
+            let fighter1_score = await hardhatDojo.getFighterScore(0);
+            await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
+            let fighter2 = await hardhatDojo.getFighter(1);
+            let fighter2_score = await hardhatDojo.getFighterScore(1);
+            winner = fighter1_score > fighter2_score ? 0 : 1;
+            loser = fighter1_score > fighter2_score ? 1 : 0;
+            console.log(fighter1_score, fighter2_score);
+            console.log(fighter1)
+            console.log(fighter2)
+        });
+
+        it("should revert if the user does not use is fighter", async function () {
+            await expect(
+                hardhatDojo.connect(addr1).fight(1, 0, { from: addr1.address })
+            ).to.be.revertedWith("You are not the owner of this fighter");
+        });
+
+        it("should revert if the user fight himself", async function () {
+            await expect(
+                hardhatDojo.connect(addr1).fight(0, 0, { from: addr1.address })
+            ).to.be.revertedWith("You can't fight yourself");
+        });
+
+        it("should revert if the user fight a wounded fighter", async function () {
+            await hardhatDojo.connect(addr2).fight(loser, winner, { from: addr2.address });
+            await hardhatDojo.connect(addr2).fight(loser, winner, { from: addr2.address });
+            await hardhatDojo.connect(addr2).fight(loser, winner, { from: addr2.address });
+            await expect(
+                hardhatDojo.connect(addr2).fight(loser, winner, { from: addr2.address })
+            ).to.be.revertedWith("Your fighter is wounded, you need to heal him");
+        });
+
+        it("should revert if the user fight a fighter with a different level", async function () {
+            await hardhatDojo.connect(addr1).fight(0, 1, { from: addr1.address });
+            await expect(
+                hardhatDojo.connect(addr1).fight(0, 1, { from: addr1.address })
+            ).to.be.revertedWith("You can't fight a fighter with a different level");
+        });
+    });
 });
 

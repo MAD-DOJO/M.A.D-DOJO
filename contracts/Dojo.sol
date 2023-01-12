@@ -12,6 +12,8 @@ contract Dojo is Ownable, ERC1155 {
 
     event NewFighter(uint fighterId, string name);
     event NewGold(uint goldId, string name);
+    event FighterLevelUp(uint fighterId, uint level);
+    event FighterFightResult(uint fighterId, uint opponentId, string result);
 
     // Modifier de méthode pour vérifier que l'adresse est celle du propriétaire du Fighter
     modifier onlyOwnerOf(uint _fighterId) {
@@ -19,10 +21,20 @@ contract Dojo is Ownable, ERC1155 {
         _;
     }
 
+    // Modifier de méthode pour vérifier que le Fighter soit du bon level
+    modifier isAboveLevel(uint _fighterId, uint _level) {
+        require(fighters[_fighterId].level >= _level);
+        _;
+    }
+
     // Structure de données pour les Fighters
     struct Fighter {
         string name;
         uint32 level;
+        uint32 xp;
+        uint32 xpToNextLevel;
+        string uri;
+        Rank rank;
         uint256 strength;
         uint256 speed;
         uint256 endurance;
@@ -31,10 +43,13 @@ contract Dojo is Ownable, ERC1155 {
         uint wounds;
     }
 
-    //TODO: Ajouter les images stockées sur IPFS pour les Fighters
-    constructor() ERC1155("") {}
+    enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
 
-    uint256 private constant GOLD = 0;
+    //TODO: Ajouter les images stockées sur IPFS pour les Fighters
+    constructor() ERC1155("https://bafybeiajtvxmsvidnwxj5ezsurtphdgdy47uuki34ma3byi3vt42l4iaom.ipfs.nftstorage.link/{id}.json") {}
+
+    uint256 public constant GOLD = 0;
+    uint256 public constant FIGHTER = 1;
     // Tableau qui contient tous les combattants
     Fighter[] private fighters;
 
@@ -48,7 +63,8 @@ contract Dojo is Ownable, ERC1155 {
         uint256 _id = fighters.length;
         string memory _name = string.concat("Fighter#", Strings.toString(_id));
         (uint _strength, uint _speed, uint _endurance) = _generateFighterStats();
-        fighters.push(Fighter(_name, 1, _strength, _speed, _endurance, 0, 0, 0));
+        fighters.push(Fighter(_name, 1, 0, 6, '', Rank.Beginner, _strength, _speed, _endurance, 0, 0, 0));
+        _mint(msg.sender, FIGHTER, 1, "");
         fighterToOwner[_id] = msg.sender;
         ownerFighterCount[msg.sender]++;
         emit NewFighter(_id, _name);
@@ -72,6 +88,16 @@ contract Dojo is Ownable, ERC1155 {
             // Si l'utilisateur a déjà un combattant, ne rien faire
             revert("You already have a fighter, pay to create a new one");
         }
+    }
+
+    // Fonction qui permet de return le nom du fichier en string
+    function uri(uint256 _tokenid) override public pure returns (string memory) {
+        return string(
+            abi.encodePacked(
+                "https://ipfs.io/ipfs/bafybeihjjkwdrxxjnuwevlqtqmh3iegcadc32sio4wmo7bv2gbf34qs34a/",
+                Strings.toString(_tokenid),".json"
+            )
+        );
     }
 
     // Fonction payable qui permet de payer pour augmenter le nombre de GOLD
@@ -142,12 +168,38 @@ contract Dojo is Ownable, ERC1155 {
     }
 
     //TODO: Implementer une méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
-    function fight() public {
+    //Implementer une méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
+    function fight(uint256 _fighterId, uint256 _opponentId) public {
+        require(fighterToOwner[_fighterId] == msg.sender, "You are not the owner of this fighter");
+        require(fighterToOwner[_opponentId] != msg.sender, "You can't fight yourself");
+        require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
+        //require(fighters[_opponentId].wounds < 3, "Your opponent is wounded, you can't fight him");
+        require(fighters[_fighterId].level == fighters[_opponentId].level, "You can't fight a fighter with a different level");
+        //uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
+        //uint256 _bonus = (_seed % 10) + 1;
+        uint256 _fighterScore = getFighterScore(_fighterId);
+        uint256 _opponentScore = getFighterScore(_opponentId);
+        if (_fighterScore > _opponentScore) {
+            fighters[_fighterId].level++;
+            emit FighterFightResult(_fighterId, _opponentId, 'Won');
+        } else {
+            fighters[_fighterId].wounds++;
+            emit FighterFightResult(_fighterId ,_opponentId, 'Lost');
+        }
+    }
 
+    // Fonction qui permet de return le score d'un combattant using safeMath
+    function getFighterScore(uint256 _fighterId) public view returns (uint256) {
+        return fighters[_fighterId].strength.add(fighters[_fighterId].speed).add(fighters[_fighterId].endurance);
     }
 
     //TODO: Implementer une méthode 'levelUp' permettant de monter de niveau un combattant et de payer 1 gold pour cela. Augmente une ou plusieurs stats du combattant aléatoirement
     function levelUp() public {
+
+    }
+
+    //TODO: Implementer une méthode 'enterTournament' permettant de participer à un tournoi. Le tournoi est un combat entre 4 combattants. Si le combattant gagne le tournoi il monte de rang et gagne 2 gold
+    function enterTournament() public {
 
     }
 
@@ -163,12 +215,15 @@ contract Dojo is Ownable, ERC1155 {
 
     //TODO: implementer une methode pour récupérer la liste des combattants en vente
     function getFightersOnSale() public view returns (uint256[] memory) {
-        return 0;
+        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+        return result;
     }
 
     //TODO: implementer une methode pour récupérer la liste des combattants en vente d'un utilisateur
     function getFightersOnSaleByUser() public view returns (uint256[] memory) {
-        return 0;
+        // return uint256[];
+        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+        return result;
     }
 
     //TODO: implementer une méthode afin de proposer un échange de token à un utilisateur uniquement si l'utilisateur possède plus d'un combattant
@@ -182,12 +237,12 @@ contract Dojo is Ownable, ERC1155 {
     }
 
     //TODO: implementer les méthodes de transfer de Token Fighter ERC1155
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external override {
+    function transfer() public {
 
     }
 
     //TODO: implementer une methode d'appovals
-    function setApprovalForAll(address _operator, bool _approved) external override {
+    function approval() public {
 
     }
 }
