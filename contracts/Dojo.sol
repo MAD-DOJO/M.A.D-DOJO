@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 contract Dojo is Ownable, ERC1155 {
 
@@ -12,18 +13,26 @@ contract Dojo is Ownable, ERC1155 {
 
     event NewFighter(uint fighterId, string name);
     event NewGold(uint goldId, string name);
-    event FighterLevelUp(uint fighterId, uint level);
+    event FighterLevelUp(uint fighterId, uint bonus, uint stat);
     event FighterFightResult(uint fighterId, uint opponentId, string result);
+    event FighterForSale(uint fighterId, uint price);
+    event TradeProposed(uint requestId, uint fighterId, uint otherFighterId, address otherAddress);
+    event TradeExecuted(uint requestId);
 
     // Modifier de méthode pour vérifier que l'adresse est celle du propriétaire du Fighter
     modifier onlyOwnerOf(uint _fighterId) {
-        require(msg.sender == fighterToOwner[_fighterId]);
+        require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
         _;
     }
 
     // Modifier de méthode pour vérifier que le Fighter soit du bon level
     modifier isAboveLevel(uint _fighterId, uint _level) {
-        require(fighters[_fighterId].level >= _level);
+        require(fighters[_fighterId].level >= _level, "Fighter is not high enough level");
+        _;
+    }
+
+    modifier hasEnoughXP(uint _fighterId) {
+        require(fighters[_fighterId].xp >= fighters[_fighterId].xpToNextLevel, "Fighter does not have enough XP");
         _;
     }
 
@@ -43,6 +52,27 @@ contract Dojo is Ownable, ERC1155 {
         uint wounds;
     }
 
+    // Structure pour enregistrer les offres de vente
+    struct FighterSell {
+        uint256 tokenId;
+        address seller;
+        uint256 price;
+    }
+
+    // Structure pour enregistrer les demandes d'échange
+    struct TradeRequest {
+        uint tokenId;
+        uint otherTokenId;
+        address otherAddress;
+        bool accepted;
+    }
+
+    // Mapping pour enregistrer les offres de vente
+    mapping(uint256 => FighterSell) public fighterSellOffers;
+
+    // Mapping pour stocker les demandes d'échange
+    mapping (uint256 => TradeRequest) public tradeRequests;
+
     enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
 
     //TODO: Ajouter les images stockées sur IPFS pour les Fighters
@@ -50,8 +80,10 @@ contract Dojo is Ownable, ERC1155 {
 
     uint256 public constant GOLD = 0;
     uint256 public constant FIGHTER = 1;
+
+    uint256 public tradeCount;
     // Tableau qui contient tous les combattants
-    Fighter[] private fighters;
+    Fighter[] public fighters;
 
     // Mapping qui associe chaque combattant à son propriétaire
     mapping (uint256 => address) fighterToOwner;
@@ -167,24 +199,24 @@ contract Dojo is Ownable, ERC1155 {
         return result;
     }
 
-    //TODO: Implementer une méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
-    //Implementer une méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
-    function fight(uint256 _fighterId, uint256 _opponentId) public {
-        require(fighterToOwner[_fighterId] == msg.sender, "You are not the owner of this fighter");
+    //Méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
+    function fight(uint256 _fighterId, uint256 _opponentId) public onlyOwnerOf(_fighterId) {
         require(fighterToOwner[_opponentId] != msg.sender, "You can't fight yourself");
         require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
-        //require(fighters[_opponentId].wounds < 3, "Your opponent is wounded, you can't fight him");
         require(fighters[_fighterId].level == fighters[_opponentId].level, "You can't fight a fighter with a different level");
         //uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
         //uint256 _bonus = (_seed % 10) + 1;
         uint256 _fighterScore = getFighterScore(_fighterId);
         uint256 _opponentScore = getFighterScore(_opponentId);
         if (_fighterScore > _opponentScore) {
-            fighters[_fighterId].level++;
+            fighters[_fighterId].xp++;
             emit FighterFightResult(_fighterId, _opponentId, 'Won');
-        } else {
+        } else if(_fighterScore < _opponentScore) {
             fighters[_fighterId].wounds++;
             emit FighterFightResult(_fighterId ,_opponentId, 'Lost');
+        } else if(_fighterScore == _opponentScore) {
+            fighters[_fighterId].xp++;
+            emit FighterFightResult(_fighterId, _opponentId, 'Won');
         }
     }
 
@@ -193,9 +225,22 @@ contract Dojo is Ownable, ERC1155 {
         return fighters[_fighterId].strength.add(fighters[_fighterId].speed).add(fighters[_fighterId].endurance);
     }
 
-    //TODO: Implementer une méthode 'levelUp' permettant de monter de niveau un combattant et de payer 1 gold pour cela. Augmente une ou plusieurs stats du combattant aléatoirement
-    function levelUp() public {
-
+    function levelUp(uint256 _fighterId) public onlyOwnerOf(_fighterId) hasEnoughXP(_fighterId) {
+        require(balanceOf(msg.sender, GOLD) >= 1, "You need to have 1 GOLD");
+        _burn(msg.sender, GOLD, 1);
+        uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
+        uint256 _bonus = (_seed % 5) + 1;
+        uint256 _stat = (_seed % 3) + 1;
+        if (_stat == 1) {
+            fighters[_fighterId].strength = fighters[_fighterId].strength.add(_bonus);
+        } else if (_stat == 2) {
+            fighters[_fighterId].speed = fighters[_fighterId].speed.add(_bonus);
+        } else if (_stat == 3) {
+            fighters[_fighterId].endurance = fighters[_fighterId].endurance.add(_bonus);
+        }
+        fighters[_fighterId].xp = 0;
+        fighters[_fighterId].level++;
+        emit FighterLevelUp(_fighterId, _bonus, _stat);
     }
 
     //TODO: Implementer une méthode 'enterTournament' permettant de participer à un tournoi. Le tournoi est un combat entre 4 combattants. Si le combattant gagne le tournoi il monte de rang et gagne 2 gold
@@ -203,46 +248,99 @@ contract Dojo is Ownable, ERC1155 {
 
     }
 
-    //TODO: Implementer une methode afin de mettre en vente un token Fighter sur le marché uniquement si l'utilisateur possède plus d'un combattant
-    function putOnSale() public {
-
+    //Methode afin de mettre en vente un token Fighter sur le marché uniquement si l'utilisateur possède plus d'un combattant
+    function sellFighter(uint256 _fighterId, uint256 _price) public {
+        require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
+        require(fighterToOwner[_fighterId] == msg.sender, "You don't own this fighter");
+        // Transférer le token à l'adresse 0x0 (état "non-propriétaire")
+        _safeTransferFrom(msg.sender, address(0), FIGHTER, 1, "");
+        // Enregistrer l'offre de vente
+        fighterSellOffers[_fighterId] = FighterSell(_fighterId, msg.sender, _price);
+        emit FighterForSale(_fighterId, _price);
     }
 
-    //TODO: Implementer une methode afin d'acheter un token Fighter sur le marché
-    function buyOnSale() public {
-
+    //Methode afin d'acheter un token Fighter sur le marché
+    function buyFighter(uint256 _fighterId) public payable {
+        // Vérifier qu'il y a une offre de vente en cours pour ce token
+        require(fighterSellOffers[_fighterId].price > 0, "This fighter is not for sale");
+        // Vérifier que l'acheteur a suffisamment de fonds
+        require(msg.value >= fighterSellOffers[_fighterId].price, "You do not have enough funds to buy this fighter");
+        // Transférer le token à l'acheteur
+        _safeTransferFrom(address(0), msg.sender, FIGHTER, 1, "");
+        // Mettre à jour le propriétaire du token
+        fighterToOwner[_fighterId] = msg.sender;
+        // Enlever l'offre de vente
+        fighterSellOffers[_fighterId].price = 0;
     }
 
-    //TODO: implementer une methode pour récupérer la liste des combattants en vente
+    //Methode pour récupérer la liste des combattants en vente
     function getFightersOnSale() public view returns (uint256[] memory) {
-        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+        uint256[] memory result = new uint256[](fighters.length);
+        uint counter = 0;
+        for (uint i = 0; i < fighters.length; i++) {
+            if (fighterSellOffers[i].price > 0) {
+                result[counter] = i;
+                counter++;
+            }
+        }
         return result;
     }
 
-    //TODO: implementer une methode pour récupérer la liste des combattants en vente d'un utilisateur
+    //Methode pour récupérer la liste des combattants en vente d'un utilisateur
     function getFightersOnSaleByUser() public view returns (uint256[] memory) {
-        // return uint256[];
-        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+        uint256[] memory result = new uint256[](fighters.length);
+        uint counter = 0;
+        for (uint i = 0; i < fighters.length; i++) {
+            if (fighterSellOffers[i].price > 0 && fighterSellOffers[i].seller == msg.sender) {
+                result[counter] = i;
+                counter++;
+            }
+        }
         return result;
     }
 
-    //TODO: implementer une méthode afin de proposer un échange de token à un utilisateur uniquement si l'utilisateur possède plus d'un combattant
-    function proposeExchange() public {
+    // Méthode pour proposer un échange
+    function proposeTrade(uint256 _fighterId, uint256 _otherFighterId, address _otherAddress) public {
+        // Vérifier que le propriétaire actuel est bien celui qui essaie de faire l'échange
+        require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
+        // Créer une demande d'échange
+        uint _requestId = tradeCount;
+        tradeRequests[_requestId] = TradeRequest(_fighterId, _otherFighterId, _otherAddress, false);
+        tradeCount++;
+        // Emettre un événement pour informer l'autre utilisateur de la demande
+        emit TradeProposed(_requestId, _fighterId, _otherFighterId, _otherAddress);
+    }
+
+    function acceptTrade(uint _requestId) public {
+        // Vérifier que l'utilisateur est bien l'autre utilisateur de la demande
+        require(msg.sender == tradeRequests[_requestId].otherAddress, "You are not the intended recipient of this trade");
+        // Vérifier que l'échange n'a pas déjà été accepté
+        require(!tradeRequests[_requestId].accepted, "This trade has already been accepted");
+        // Transférer votre token à l'autre utilisateur
+        _safeTransferFrom(msg.sender, tradeRequests[_requestId].otherAddress, FIGHTER, tradeRequests[_requestId].tokenId, "");
+        // Transférer le token de l'autre utilisateur à vous
+        _safeTransferFrom(tradeRequests[_requestId].otherAddress, msg.sender, FIGHTER, tradeRequests[_requestId].otherTokenId, "");
+        // Mettre à jour les propriétaires des tokens
+        fighterToOwner[tradeRequests[_requestId].tokenId] = tradeRequests[_requestId].otherAddress;
+        fighterToOwner[tradeRequests[_requestId].otherTokenId] = msg.sender;
+        // Supprimer la demande d'échange
+        delete tradeRequests[_requestId];
+        // Emettre un événement pour informer les utilisateurs que l'échange est terminé
+        emit TradeExecuted(_requestId);
+    }
+
+    //TODO: Implementer une méthode 'cancelTrade' permettant d'annuler une demande d'échange
+    function cancelTrade(uint _requestId) public {
 
     }
 
-    //TODO: implementer une méthode afin d'accepter un échange de token à un utilisateur
-    function acceptExchange() public {
+    //TODO: Implementer une méthode 'getTradesByUser' permettant de récupérer la liste des demandes d'échange d'un utilisateur
+    function getTradesByUser() public {
 
     }
 
-    //TODO: implementer les méthodes de transfer de Token Fighter ERC1155
-    function transfer() public {
-
-    }
-
-    //TODO: implementer une methode d'appovals
-    function approval() public {
+    //TODO: Implementer une méthode 'getTrade' permettant de récupérer les informations d'une demande d'échange
+    function getTrade(uint _requestId) public {
 
     }
 }
