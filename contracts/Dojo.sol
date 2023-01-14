@@ -89,7 +89,7 @@ contract Dojo is Ownable, ERC1155 {
         uint256 _id = fighters.length;
         string memory _name = string.concat("Fighter#", Strings.toString(_id));
         (uint _strength, uint _speed, uint _endurance) = _generateFighterStats();
-        fighters.push(Fighter(_name, 1, 0, 6, '', Rank.Beginner, _strength, _speed, _endurance, 0, 0, 0));
+        fighters.push(Fighter(_name, 1, 0, 6, 'https://bafkreifrm3g3ntvejidi2ka4j5gho6pofw2ggsw3oien2mgqtuazd7jgoa.ipfs.nftstorage.link', Rank.Beginner, _strength, _speed, _endurance, 0, 0, 0));
         _mint(msg.sender, FIGHTER, 1, "");
         fighterToOwner[_id] = msg.sender;
         ownerFighterCount[msg.sender]++;
@@ -110,15 +110,6 @@ contract Dojo is Ownable, ERC1155 {
         }else{
             revert("You already have a fighter, pay to create a new one");
         }
-    }
-
-    function uri(uint256 _tokenid) override public pure returns (string memory) {
-        return string(
-            abi.encodePacked(
-                "https://ipfs.io/ipfs/bafybeihjjkwdrxxjnuwevlqtqmh3iegcadc32sio4wmo7bv2gbf34qs34a/",
-                Strings.toString(_tokenid),".json"
-            )
-        );
     }
 
     function payForGold() public payable {

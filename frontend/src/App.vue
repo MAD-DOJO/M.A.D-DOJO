@@ -21,8 +21,7 @@ export default defineComponent({
   methods: {
   },
   mounted() {
-    this.dojoStore.getFighters();
-    this.dojoStore.getGold();
+    //this.dojoStore.createFighter();
   }
 })
 </script>

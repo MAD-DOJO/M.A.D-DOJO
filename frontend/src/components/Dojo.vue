@@ -1,12 +1,4 @@
 <template>
-  <vue-final-modal v-model="showSelectFighterModal" classes="modal-container" content-class="modal-content">
-    <button class="modal__close" @click="showSelectFighterModal = false">X</button>
-    <span class="modal__title">Recruter un Combattant</span>
-    <div class="modal__content">
-      <p>Merci de choisir un combattant parmi la liste. La liste des combattants disponibles change chaque jour et est unique pour chaque joueur :</p>
-      <select-fighter class="pt-2"></select-fighter>
-    </div>
-  </vue-final-modal>
   <vue-final-modal v-model="showFighterDetailModal" classes="modal-container" content-class="modal-content">
     <button class="modal__close" @click="showFighterDetailModal = false">X</button>
     <span class="modal__title">Détails du combattant : {{selectedFighter?.name}}</span>
@@ -24,24 +16,19 @@
       </div>
       <div class="justify-center align-text-bottom space-y-4 sm:flex sm:space-y-0 sm:space-x-4 pt-5">
         <a class="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 text-white rounded-lg inline-flex items-center justify-center px-4 py-2.5 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700" href="#">
-            <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="showSelectFighterModal = true">Recruter un combattant</div>
+            <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="store.createFighter()">Recruter un combattant</div>
         </a>
       </div>
     </div>
     <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5">
-      <h5 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Statistique du Dojo</h5>
-      <p class="mb-5 text-base text-gray-500 sm:text-lg dark:text-gray-400">Balance : ...</p>
+      <h5 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Information du Dojo</h5>
+      <p class="mb-5 text-base text-gray-500 sm:text-lg dark:text-gray-400">Gold : {{ store.gold }}</p>
+      <p class="mb-5 text-base text-gray-500 sm:text-lg dark:text-gray-400">Nombre de combattant : {{ store.fighterCount }}</p>
       <div class="items-center justify-center space-y-4 sm:flex sm:space-y-0 sm:space-x-4">
         <a class="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 text-white rounded-lg inline-flex items-center justify-center px-4 py-2.5 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
            href="#">
           <div class="text-left">
-            <div class="-mt-1 font-sans text-sm font-semibold">Mac App Store</div>
-          </div>
-        </a>
-        <a class="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 text-white rounded-lg inline-flex items-center justify-center px-4 py-2.5 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
-           href="#">
-          <div class="text-left">
-            <div class="-mt-1 font-sans text-sm font-semibold">Google Play</div>
+            <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="store.payForGold()">Payer 0.01 ETH pour 10 Golds</div>
           </div>
         </a>
       </div>
@@ -58,13 +45,11 @@
 import {defineComponent} from "vue";
 import {dojoStore} from "../store/dojoStore.ts";
 import FighterCard from "./FighterCard.vue";
-import SelectFighter from "./SelectFighter.vue";
 import FighterDetails from "./FighterDetails.vue";
 export default defineComponent({
   name: "Dojo",
   components: {
     FighterDetails,
-    SelectFighter,
     FighterCard
   },
   data() {
@@ -72,12 +57,12 @@ export default defineComponent({
       store: dojoStore(),
       showSelectFighterModal: false,
       showFighterDetailModal: false,
-      selectedFighter: null
+      selectedFighter: {}
     }
   },
-  methods: {},
+  methods: {
+  },
   mounted() {
-    console.log("CHARGEMENT DU DOJO");
   }
 })
 </script>

@@ -1,7 +1,7 @@
 <template>
-  <div v-bind:class="isWithDetails ? 'flex':''" class="rounded-2xl bg-gray-300 border-4 border-red-600">
+  <div v-bind:class="isWithDetails ? 'flex w-60':''" class="rounded-2xl bg-gray-300 border-4 border-red-600">
     <div>
-      <img v-bind:src="fighter.image" class="rounded-t-lg">
+      <img v-bind:src="fighter.uri" class="rounded-t-lg">
       <div class="bg-red-600" v-bind:class="isWithDetails ? '': 'rounded-b-lg'">
         <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.name }}</p>
       </div>
@@ -17,7 +17,7 @@
         </div>
         <div class="flex flex-row justify-center items-center">
           <img src="src/assets/icon/agility.png" class="w-6 h-6">
-          <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.agility }}</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.speed }}</p>
         </div>
         <div class="flex flex-row justify-center items-center">
           <img src="src/assets/icon/stamina.png" class="w-6 h-6">
@@ -25,7 +25,7 @@
         </div>
         <div class="flex flex-row justify-center items-center">
           <img src="src/assets/icon/health.svg" class="w-6 h-6">
-          <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.health }}</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white truncate px-2">{{ fighter.wounds }}</p>
         </div>
       </div>
     </div>

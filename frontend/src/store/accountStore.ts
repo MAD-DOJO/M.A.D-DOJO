@@ -1,25 +1,32 @@
 // basic store setup with pinia
-
 import { defineStore } from 'pinia'
 import Web3 from "web3";
 import { useCookies } from "vue3-cookies";
 const { cookies } = useCookies();
 import { useMetaMaskWallet } from "vue-connect-wallet";
+import {dojoStore} from "./dojoStore";
 const wallet = useMetaMaskWallet();
+
+window.ethereum.on('accountsChanged', function (accounts: any) {
+    // Time to reload your interface with accounts[0]!
+    accountStore().setAccount(accounts[0]).then();
+})
+
+window.ethereum.on('chainChanged', function (networkId: any) {
+    // Time to reload your interface with the new networkId
+    console.log(networkId);
+})
+
 export const accountStore = defineStore('accountStore',{
     state: () => {
         return {
             account: '',
-            balance: '',
             isConnected: false,
         }
     },
     getters: {
         getAccount: (state) => {
             return state.account;
-        },
-        getBalance: (state) => {
-            return state.balance;
         },
         getIsConnected: (state) => {
             return state.isConnected;
@@ -31,22 +38,17 @@ export const accountStore = defineStore('accountStore',{
             if (typeof accounts === "string") {
                 console.log("An error occurred" + accounts);
             }
-            this.account = accounts[0];
-            cookies.set('account', this.account);
+            await this.setAccount(accounts[0]);
             this.isConnected = true;
-        },
-        async switchWallet() {
-            await wallet.switchAccounts();
-            await this.connectWallet();
         },
         async disconnectWallet() {
             console.log("disconnectWallet");
         },
-        // async isConnected() {
-        //     const accounts = await wallet.getAccounts();
-        //     if (typeof accounts === "string") return false;
-        //     return accounts.length > 0;
-        // }
+        async setAccount(account: string) {
+            this.account = account;
+            cookies.set('account', this.account);
+            await dojoStore().initializeDojo();
+        }
     },
     persist: true,
 })
