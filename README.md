@@ -28,7 +28,7 @@ npx hardhat compile
 npx hardhat node
 npx hardhat run --network localhost scripts/deploy.js
 ```
-Pour une meilleur utilisation lancer les commandes dans une console differente
+For a better usage launch commands in different consoles
 
 ### Using in Goerli (testnet) :
 - Ajouter un fichier .env à la racine du projet
