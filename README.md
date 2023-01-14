@@ -61,7 +61,7 @@ ___
 ## FRONT
 
 ### Using in Local :
-- Ajouter un fichier .env à la racine du projet
+- Add .env file to root
 ```dotenv
 VITE_ALCHEMY_KEY=NO NEED IN LOCAL
 VITE_DOJO_CONTRACT=ADDRESS OF YOUR CONTRACT
