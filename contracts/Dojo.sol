@@ -68,7 +68,6 @@ contract Dojo is Ownable, ERC1155 {
     }
 
     mapping(uint256 => FighterSell) public fighterSellOffers;
-
     mapping (uint256 => TradeRequest) public tradeRequests;
 
     enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
@@ -81,6 +80,7 @@ contract Dojo is Ownable, ERC1155 {
 
     uint256 public tradeCount;
     Fighter[] public fighters;
+    FighterSell[] public sellOffers;
 
     mapping (uint256 => address) fighterToOwner;
     mapping(address => uint) ownerFighterCount;
@@ -222,28 +222,23 @@ contract Dojo is Ownable, ERC1155 {
 
     function sellFighter(uint256 _fighterId, uint256 _price) public onlyOwnerOf(_fighterId) {
         require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
-        _safeTransferFrom(msg.sender, address(0), FIGHTER, 1, "");
+        require(_price > 0, "Price must be greater than 0");
         fighterSellOffers[_fighterId] = FighterSell(_fighterId, msg.sender, _price);
+        sellOffers.push(FighterSell(_fighterId, msg.sender, _price));
         emit FighterForSale(_fighterId, _price);
     }
 
-    function buyFighter(uint256 _fighterId) public payable hasEnoughGold(fighterSellOffers[_fighterId].price) {
+    function buyFighter(uint256 _fighterId) public hasEnoughGold(fighterSellOffers[_fighterId].price) {
         require(fighterSellOffers[_fighterId].price > 0, "This fighter is not for sale");
-        _safeTransferFrom(address(0), msg.sender, FIGHTER, 1, "");
+        require(fighterSellOffers[_fighterId].seller != msg.sender, "You can't buy your own fighter");
+        _safeTransferFrom(fighterSellOffers[_fighterId].seller, msg.sender, FIGHTER, 1, "");
         fighterToOwner[_fighterId] = msg.sender;
-        fighterSellOffers[_fighterId].price = 0;
+        _burn(msg.sender, GOLD, fighterSellOffers[_fighterId].price);
+        delete fighterSellOffers[_fighterId];
     }
 
-    function getFightersOnSale() public view returns (uint256[] memory) {
-        uint256[] memory result = new uint256[](fighters.length);
-        uint counter = 0;
-        for (uint i = 0; i < fighters.length; i++) {
-            if (fighterSellOffers[i].price > 0) {
-                result[counter] = i;
-                counter++;
-            }
-        }
-        return result;
+    function getSellOffers() public view returns (FighterSell[] memory) {
+        return sellOffers;
     }
 
     function getFightersOnSaleByUser() public view returns (uint256[] memory) {
@@ -278,16 +273,13 @@ contract Dojo is Ownable, ERC1155 {
 
     //TODO: Implementer une méthode 'cancelTrade' permettant d'annuler une demande d'échange
     function cancelTrade(uint _requestId) public {
-
     }
 
     //TODO: Implementer une méthode 'getTradesByUser' permettant de récupérer la liste des demandes d'échange d'un utilisateur
     function getTradesByUser() public {
-
     }
 
     //TODO: Implementer une méthode 'getTrade' permettant de récupérer les informations d'une demande d'échange
     function getTrade(uint _requestId) public {
-
     }
 }

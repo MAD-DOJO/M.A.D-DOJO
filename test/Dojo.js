@@ -158,25 +158,69 @@ describe("Dojo Smart Contract Test", function () {
         beforeEach(async function () {
             ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
             await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
             await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
+            await hardhatDojo.connect(addr2).payForGold({ from: addr2.address, value: ethers.utils.parseEther("0.01") });
         });
-        it('should revert if the user have less than 1 fighter', function () {
-            expect(
-                hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address })
-            ).to.be.revertedWith('You need to have at least one fighter');
+
+        describe('Sell Token', function () {
+            it('should revert if the user have less than 1 fighter', function () {
+                expect(
+                    hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address })
+                ).to.be.revertedWith('You need to have at least one fighter');
+            });
+            it('should revert if the user try to sell a fighter he does not own', async function () {
+                await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await expect(
+                    hardhatDojo.connect(addr1).sellFighter(1, 5, { from: addr1.address })
+                ).to.be.revertedWith("You are not the owner of this fighter");
+            });
+            it('should set the fighter for sale', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address });
+                const sellOffers = await hardhatDojo.connect(addr1).getSellOffers({ from: addr1.address });
+                expect(sellOffers.length).to.equal(1);
+                expect(sellOffers[0].price).to.equal(5);
+                expect(sellOffers[0].tokenId).to.equal(0);
+                expect(sellOffers[0].seller).to.equal(addr1.address);
+            });
+            it('should revert if the user try to sell a fighter at a price of 0', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await expect(
+                    hardhatDojo.connect(addr1).sellFighter(0, 0, { from: addr1.address })
+                ).to.be.revertedWith("Price must be greater than 0");
+            });
         });
-        it('should revert if the user try to trade a fighter he does not own', async function () {
-            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
-            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
-            await expect(
-                hardhatDojo.connect(addr1).sellFighter(1, 5, { from: addr1.address })
-            ).to.be.revertedWith("You don't own this fighter");
-        });
-        it('should set the fighter for sale', async function () {
-            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
-            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
-            await hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address });
-            await hardhatDojo.connect(addr1).getFightersOnSale({ from: addr2.address });
+        describe('Buy Token', function () {
+            it('should revert if the user try to buy a fighter he already own', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address });
+                await expect(
+                    hardhatDojo.connect(addr1).buyFighter(0, { from: addr1.address })
+                ).to.be.revertedWith("You can't buy your own fighter");
+            });
+            it('should revert if the user try to buy a fighter that is not for sale', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await expect(
+                    hardhatDojo.connect(addr1).buyFighter(0, { from: addr1.address })
+                ).to.be.revertedWith("This fighter is not for sale");
+            });
+            it('should revert if the user try to buy a fighter with a price lower than the one set', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await hardhatDojo.connect(addr1).sellFighter(0, 10, { from: addr1.address });
+                await hardhatDojo.connect(addr2).payToCreateFighter({ from: addr2.address });
+                await expect(
+                    hardhatDojo.connect(addr2).buyFighter(0, { from: addr2.address})
+                ).to.be.revertedWith("You do not have enough gold");
+            });
+            it('should validate the trade', async function () {
+                await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+                await hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address });
+                await hardhatDojo.connect(addr2).buyFighter(0, { from: addr2.address });
+                const owner = await hardhatDojo.connect(addr2).getFighterOwner(0, { from: addr2.address });
+                expect(owner).to.equal(addr2.address);
+            });
         });
     });
 });
