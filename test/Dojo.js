@@ -90,6 +90,26 @@ describe("Dojo Smart Contract Test", function () {
         });
     });
 
+    describe("Withdraw ether", function () {
+       it("should withdraw ether from the contract to the owner", async function () {
+              const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+              await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+              await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+              await hardhatDojo.connect(owner).withdrawEther({ from: owner.address });
+              const balance = await ethers.provider.getBalance(owner.address);
+              expect(balance).to.be.greaterThan(ethers.utils.parseEther("0.01"));
+       });
+
+       it("should revert if the caller is not the owner", async function () {
+           const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
+           await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+           await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+              await expect(
+                    hardhatDojo.connect(addr1).withdrawEther({ from: addr1.address })
+                ).to.be.reverted;
+       });
+    });
+
     describe("Getting Fighters", function () {
         let hardhatDojo, owner, addr1, addr2;
         beforeEach(async function () {
