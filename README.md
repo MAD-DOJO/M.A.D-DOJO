@@ -31,7 +31,7 @@ npx hardhat run --network localhost scripts/deploy.js
 For a better usage launch commands in different consoles
 
 ### Using in Goerli (testnet) :
-- Ajouter un fichier .env à la racine du projet
+- Add .env file at root
 ```dotenv
 API_URL=API URL OF YOUR INFURA PROJECT
 PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
