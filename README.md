@@ -22,7 +22,7 @@ PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
 ETHERSCAN_API_KEY=NO NEED IN LOCAL
 ```
 
-- Lancer le projet en local avec les commandes suivantes
+- Start project locally with these commands
 ```bash
 npx hardhat compile
 npx hardhat node
