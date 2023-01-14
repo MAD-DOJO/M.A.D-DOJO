@@ -38,7 +38,7 @@ PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
 ETHERSCAN_API_KEY=NO NEED HERE
 ```
 
-- Deployer le contrat sur la blockchain Goerli avec la commande suivante
+- Deploy contract on Goerli blockchain with these command
 ```bash
 npx hardhat run scripts/deploy.js --network goerli
 ```
