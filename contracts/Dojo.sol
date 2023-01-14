@@ -203,11 +203,6 @@ contract Dojo is Ownable, ERC1155 {
         emit FighterLevelUp(_fighterId, _bonus, _stat);
     }
 
-    //TODO: Implementer une méthode 'enterTournament' permettant de participer à un tournoi. Le tournoi est un combat entre 4 combattants. Si le combattant gagne le tournoi il monte de rang et gagne 2 gold
-    function enterTournament() public {
-
-    }
-
     function sellFighter(uint256 _fighterId, uint256 _price) public onlyOwnerOf(_fighterId) {
         require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
         require(_price > 0, "Price must be greater than 0");
@@ -257,17 +252,5 @@ contract Dojo is Ownable, ERC1155 {
         fighterToOwner[tradeRequests[_requestId].otherTokenId] = msg.sender;
         delete tradeRequests[_requestId];
         emit TradeExecuted(_requestId);
-    }
-
-    //TODO: Implementer une méthode 'cancelTrade' permettant d'annuler une demande d'échange
-    function cancelTrade(uint _requestId) public {
-    }
-
-    //TODO: Implementer une méthode 'getTradesByUser' permettant de récupérer la liste des demandes d'échange d'un utilisateur
-    function getTradesByUser() public {
-    }
-
-    //TODO: Implementer une méthode 'getTrade' permettant de récupérer les informations d'une demande d'échange
-    function getTrade(uint _requestId) public {
     }
 }

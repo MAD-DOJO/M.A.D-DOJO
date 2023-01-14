@@ -18,11 +18,6 @@ export default defineComponent({
       dojoStore: dojoStore()
     }
   },
-  methods: {
-  },
-  mounted() {
-    //this.dojoStore.createFighter();
-  }
 })
 </script>
 

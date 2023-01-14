@@ -67,9 +67,15 @@ export const dojoStore = defineStore('dojoStore',{
             await this.loadGold();
         },
         async createFighter() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
-            await contract.connect(provider.getSigner()).createFighter();
-            await this.loadFighters();
+            if(this.fighterCount <= 0){
+                const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
+                await contract.connect(provider.getSigner()).createFighter();
+                await this.loadFighters();
+            }else{
+                const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
+                await contract.connect(provider.getSigner()).payToCreateFighter();
+                await this.loadFighters();
+            }
         },
         async payToCreateFighter() {
             const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
