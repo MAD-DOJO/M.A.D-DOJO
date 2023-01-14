@@ -1,14 +1,22 @@
 const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
-  console.log(
-    `Contract deployed`
-  );
+  const [deployer] = await ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+
+  console.log("Account balance:", (await deployer.getBalance()).toString());
+
+  const Dojo = await ethers.getContractFactory("Dojo");
+  const dojo = await Dojo.deploy();
+
+  console.log("Dojo address:", dojo.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
