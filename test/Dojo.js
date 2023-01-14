@@ -90,6 +90,27 @@ describe("Dojo Smart Contract Test", function () {
         });
     });
 
+    describe("Getting Fighters", function () {
+        let hardhatDojo, owner, addr1, addr2;
+        beforeEach(async function () {
+            ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+        });
+        it("should get all user's fighters", async function () {
+            let userFightersArray = await hardhatDojo.connect(addr1).getMyFighters({ from: addr1.address });
+            expect(userFightersArray.length).to.equal(2);
+        });
+
+        it("should get all the fighters", async function () {
+                let allFighters = await hardhatDojo.getFightersCount();
+                expect(allFighters).to.equal(3);
+            }
+        );
+    });
+
     describe("Leveling up and Fighting", function () {
         let hardhatDojo, owner, addr1, addr2;
         let [winnerAddress, winnerId, winningFighter] = [];
@@ -227,6 +248,29 @@ describe("Dojo Smart Contract Test", function () {
                 await expect(
                     hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address })
                 ).to.be.revertedWith("You can't fight a fighter with a different level");
+            });
+
+            it("should reveert with not enough gold on payToHealFighter", async function () {
+                await expect(
+                    hardhatDojo.connect(winnerAddress).payToHealFighter(winnerId, { from: winnerAddress.address})
+                ).to.be.revertedWith("You do not have enough gold");
+            });
+
+            it("should revert if the user figter tries to heal a full health fighter", async function () {
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await expect(
+                    hardhatDojo.connect(winnerAddress).payToHealFighter(winnerId, { from: winnerAddress.address})
+               ).to.be.revertedWith("Your fighter is not wounded");
+            });
+
+            it("should heal the fighter when the user pays for it", async function () {
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await hardhatDojo.connect(loserAddress).payForGold({ from: loserAddress.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(loserAddress).payToHealFighter(loserId, { from: loserAddress.address });
+                let loserFighter = await hardhatDojo.getFighter(loserId);
+                expect(loserFighter.wounds).to.equal(0);
             });
         });
     });
