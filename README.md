@@ -56,6 +56,17 @@ ETHERSCAN_API_KEY=Etherscan API KEY
 npx hardhat verify --network goerli
 ```
 
+___
+
+## FRONT
+
+### Using in Local :
+- Ajouter un fichier .env à la racine du projet
+```dotenv
+VITE_ALCHEMY_KEY=NO NEED IN LOCAL
+VITE_DOJO_CONTRACT=ADDRESS OF YOUR CONTRACT
+```
+
 ## Events
 
 Dojo includes several events that can be used to track the activity of the contract:
