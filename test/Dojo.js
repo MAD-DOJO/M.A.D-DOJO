@@ -92,13 +92,34 @@ describe("Dojo Smart Contract Test", function () {
 
     describe("Fighting", function () {
         let hardhatDojo, owner, addr1, addr2;
-        let fighter1, fighter2;
+        let [winnerAddress, winnerId] = [];
+        let [loserAddress, loserId] = [];
         beforeEach(async function () {
             ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
             await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
-            fighter1 = await hardhatDojo.getFighter(0);
+            let fighter1 = await hardhatDojo.getFighter(0);
             await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
-            fighter2 = await hardhatDojo.getFighter(1);
+            let fighter2 = await hardhatDojo.getFighter(1);
+            // get the score for each fighter
+            let fighter1Score = await hardhatDojo.getFighterScore(0);
+            let fighter2Score = await hardhatDojo.getFighterScore(1);
+            // make sure the scores are different
+            while (fighter1Score === fighter2Score) {
+                await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
+                fighter2 = await hardhatDojo.getFighter(1);
+                fighter2Score = await hardhatDojo.getFighterScore(1);
+            }
+            if (Number(fighter1Score) > Number(fighter2Score)) {
+                winnerAddress = addr1;
+                winnerId = 0;
+                loserAddress = addr2;
+                loserId = 1;
+            }else{
+                winnerAddress = addr2;
+                winnerId = 1;
+                loserAddress = addr1;
+                loserId = 0;
+            }
         });
 
         it("should revert if the user does not use is fighter", async function () {
@@ -113,10 +134,12 @@ describe("Dojo Smart Contract Test", function () {
             ).to.be.revertedWith("You can't fight yourself");
         });
 
-        //TODO: test if the fighter is wounded
         it("should revert if the user fight a wounded fighter", async function () {
+            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
             await expect(
-                hardhatDojo.connect(addr2).fight(1, 0, { from: addr2.address })
+                hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address })
             ).to.be.revertedWith("Your fighter is wounded, you need to heal him");
         });
 
