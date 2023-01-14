@@ -15,7 +15,7 @@ Dojo also includes events that are emitted when a new fighter is created, gold i
 # Getting Started
 
 ### Using in Local :
-- Ajouter un fichier .env à la racine du projet
+- Add .env file at root 
 ```dotenv
 API_URL=NO NEED IN LOCAL
 PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
