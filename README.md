@@ -51,7 +51,7 @@ PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
 ETHERSCAN_API_KEY=Etherscan API KEY
 ```
 
-- Deployer le contrat sur etherscan avec la commande suivante
+- Deploy contract on etherscan with these command
 ```bash
 npx hardhat verify --network goerli
 ```
