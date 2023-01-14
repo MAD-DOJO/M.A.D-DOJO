@@ -173,15 +173,12 @@ contract Dojo is Ownable, ERC1155 {
         //uint256 _bonus = (_seed % 10) + 1;
         uint256 _fighterScore = getFighterScore(_fighterId);
         uint256 _opponentScore = getFighterScore(_opponentId);
-        if (_fighterScore > _opponentScore) {
+        if (_fighterScore > _opponentScore || _fighterScore == _opponentScore) {
             fighters[_fighterId].xp++;
             emit FighterFightResult(_fighterId, _opponentId, 'Won');
-        } else if(_fighterScore < _opponentScore) {
+        } else {
             fighters[_fighterId].wounds++;
             emit FighterFightResult(_fighterId ,_opponentId, 'Lost');
-        } else if(_fighterScore == _opponentScore) {
-            fighters[_fighterId].xp++;
-            emit FighterFightResult(_fighterId, _opponentId, 'Won');
         }
     }
 
