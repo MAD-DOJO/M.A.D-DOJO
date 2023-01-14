@@ -22,6 +22,7 @@ export default defineComponent({
   },
   mounted() {
     this.dojoStore.getFighters();
+    this.dojoStore.getGold();
   }
 })
 </script>

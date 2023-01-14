@@ -86,7 +86,7 @@ describe("Dojo Smart Contract Test", function () {
             const { hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture);
             await expect(
                 hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address })
-            ).to.be.revertedWith("You need to have 5 GOLD");
+            ).to.be.revertedWith("You do not have enough gold");
         });
     });
 
