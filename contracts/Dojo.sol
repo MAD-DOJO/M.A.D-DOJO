@@ -162,16 +162,16 @@ contract Dojo is Ownable, ERC1155 {
         return fighters.length;
     }
 
-    function getFighters() public view returns (uint256[] memory) {
-        uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
+    function getMyFighters() public view returns (Fighter[] memory) {
+        Fighter[] memory _fighters = new Fighter[](ownerFighterCount[msg.sender]);
         uint counter = 0;
         for (uint i = 0; i < fighters.length; i++) {
             if (fighterToOwner[i] == msg.sender) {
-                result[counter] = i;
+                _fighters[counter] = fighters[i];
                 counter++;
             }
         }
-        return result;
+        return _fighters;
     }
 
     function fight(uint256 _fighterId, uint256 _opponentId) public onlyOwnerOf(_fighterId) {
