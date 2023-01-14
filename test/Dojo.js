@@ -7,14 +7,14 @@ describe("Dojo Smart Contract Test", function () {
     async function deployTokenFixture() {
         // Get the ContractFactory and Signers here.
         const Dojo = await ethers.getContractFactory("Dojo");
-        const [owner, addr1, addr2] = await ethers.getSigners();
+        const [owner, addr1, addr2, addr3, addr4] = await ethers.getSigners();
         // To deploy our contract, we just have to call Token.deploy() and await
         // its deployed() method, which happens once its transaction has been
         // mined.
         const hardhatDojo = await Dojo.deploy();
         await hardhatDojo.deployed();
         // Fixtures can return anything you consider useful for your tests
-        return { Dojo, hardhatDojo, owner, addr1, addr2 };
+        return { Dojo, hardhatDojo, owner, addr1, addr2, addr3, addr4 };
     }
 
     describe("Deployment", function () {
@@ -132,37 +132,54 @@ describe("Dojo Smart Contract Test", function () {
     });
 
     describe("Leveling up and Fighting", function () {
-        let hardhatDojo, owner, addr1, addr2;
+        let hardhatDojo, owner, addr1, addr2, addr3, addr4;
         let [winnerAddress, winnerId, winningFighter] = [];
         let [loserAddress, loserId] = [];
         beforeEach(async function () {
-            ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
-            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
-            let fighter1 = await hardhatDojo.getFighter(0);
-            await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
-            let fighter2 = await hardhatDojo.getFighter(1);
+            ({ hardhatDojo, owner, addr1, addr2, addr3, addr4 } = await loadFixture(deployTokenFixture));
+            let addresses = [addr1, addr2, addr3, addr4];
+
+            let fighters = [];
+            for (let i = 0; i < addresses.length; i++) {
+                await hardhatDojo.connect(addresses[i]).createFighter({ from: addresses[i].address });
+                let fighter = await hardhatDojo.getFighter(i)
+                fighters.push(fighter);
+            }
+
             // get the score for each fighter
-            let fighter1Score = await hardhatDojo.getFighterScore(0);
-            let fighter2Score = await hardhatDojo.getFighterScore(1);
+            let fighterScores = [];
+            for (let i = 0; i < fighters.length; i++) {
+                let score = await hardhatDojo.getFighterScore(i);
+                fighterScores.push(score);
+            }
+
             // make sure the scores are different
-            while (Number(fighter1Score) === Number(fighter2Score)) {
-                await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
-                fighter2 = await hardhatDojo.getFighter(1);
-                fighter2Score = await hardhatDojo.getFighterScore(1);
+            let found = false;
+            for (let i = 0; i < fighterScores.length; i++) {
+                if (found === true)
+                    break;
+                for (let j = i + 1; j < fighterScores.length; j++) {
+                    if (Number(fighterScores[i]) > Number(fighterScores[j])) {
+                        winnerAddress = addresses[i];
+                        winnerId = i;
+                        winningFighter = fighters[i];
+                        loserAddress = addresses[j];
+                        loserId = j;
+                        found = true;
+                        break;
+                    }
+                    if (Number(fighterScores[i]) < Number(fighterScores[j])) {
+                        winnerAddress = addresses[j];
+                        winnerId = j;
+                        winningFighter = fighters[j];
+                        loserAddress = addresses[i];
+                        loserId = i;
+                        found = true;
+                        break;
+                    }
+                }
             }
-            if (Number(fighter1Score) > Number(fighter2Score)) {
-                winnerAddress = addr1;
-                winnerId = 0;
-                winningFighter = fighter1;
-                loserAddress = addr2;
-                loserId = 1;
-            }else{
-                winnerAddress = addr2;
-                winnerId = 1;
-                winningFighter = fighter2;
-                loserAddress = addr1;
-                loserId = 0;
-            }
+            console.log(fighterScores);
         });
 
         describe("Leveling up", function () {
