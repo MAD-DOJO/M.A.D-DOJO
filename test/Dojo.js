@@ -131,6 +131,30 @@ describe("Dojo Smart Contract Test", function () {
 
     describe("Market Place", function () {});
 
-    describe('Trading Token', function () {});
+    describe('Trading Token', function () {
+        beforeEach(async function () {
+            ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
+            await hardhatDojo.connect(addr1).createFighter({ from: addr1.address });
+            await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
+        });
+        it('should revert if the user have less than 1 fighter', function () {
+            expect(
+                hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address })
+            ).to.be.revertedWith('You need to have at least one fighter');
+        });
+        it('should revert if the user try to trade a fighter he does not own', async function () {
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+            await expect(
+                hardhatDojo.connect(addr1).sellFighter(1, 5, { from: addr1.address })
+            ).to.be.revertedWith("You don't own this fighter");
+        });
+        it('should set the fighter for sale', async function () {
+            await hardhatDojo.connect(addr1).payForGold({ from: addr1.address, value: ethers.utils.parseEther("0.01") });
+            await hardhatDojo.connect(addr1).payToCreateFighter({ from: addr1.address });
+            await hardhatDojo.connect(addr1).sellFighter(0, 5, { from: addr1.address });
+            await hardhatDojo.connect(addr1).getFightersOnSale({ from: addr2.address });
+        });
+    });
 });
 

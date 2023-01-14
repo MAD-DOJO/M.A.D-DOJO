@@ -19,13 +19,11 @@ contract Dojo is Ownable, ERC1155 {
     event TradeProposed(uint requestId, uint fighterId, uint otherFighterId, address otherAddress);
     event TradeExecuted(uint requestId);
 
-    // Modifier de méthode pour vérifier que l'adresse est celle du propriétaire du Fighter
     modifier onlyOwnerOf(uint _fighterId) {
         require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
         _;
     }
 
-    // Modifier de méthode pour vérifier que le Fighter soit du bon level
     modifier isAboveLevel(uint _fighterId, uint _level) {
         require(fighters[_fighterId].level >= _level, "Fighter is not high enough level");
         _;
@@ -36,7 +34,11 @@ contract Dojo is Ownable, ERC1155 {
         _;
     }
 
-    // Structure de données pour les Fighters
+    modifier hasEnoughGold(uint _numberOfGold) {
+        require(balanceOf(msg.sender, GOLD) >= _numberOfGold, "You do not have enough gold");
+        _;
+    }
+
     struct Fighter {
         string name;
         uint32 level;
@@ -52,14 +54,12 @@ contract Dojo is Ownable, ERC1155 {
         uint wounds;
     }
 
-    // Structure pour enregistrer les offres de vente
     struct FighterSell {
         uint256 tokenId;
         address seller;
         uint256 price;
     }
 
-    // Structure pour enregistrer les demandes d'échange
     struct TradeRequest {
         uint tokenId;
         uint otherTokenId;
@@ -67,10 +67,8 @@ contract Dojo is Ownable, ERC1155 {
         bool accepted;
     }
 
-    // Mapping pour enregistrer les offres de vente
     mapping(uint256 => FighterSell) public fighterSellOffers;
 
-    // Mapping pour stocker les demandes d'échange
     mapping (uint256 => TradeRequest) public tradeRequests;
 
     enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
@@ -82,16 +80,12 @@ contract Dojo is Ownable, ERC1155 {
     uint256 public constant FIGHTER = 1;
 
     uint256 public tradeCount;
-    // Tableau qui contient tous les combattants
     Fighter[] public fighters;
 
-    // Mapping qui associe chaque combattant à son propriétaire
     mapping (uint256 => address) fighterToOwner;
     mapping(address => uint) ownerFighterCount;
 
-    // Fonction qui permet de créer un nouveau combattant
     function _createFighter() internal {
-        // Création d'un nouveau combattant
         uint256 _id = fighters.length;
         string memory _name = string.concat("Fighter#", Strings.toString(_id));
         (uint _strength, uint _speed, uint _endurance) = _generateFighterStats();
@@ -102,7 +96,6 @@ contract Dojo is Ownable, ERC1155 {
         emit NewFighter(_id, _name);
     }
 
-    // Fonction to generate random statistics to a new Fighter (between 1 and 5) and all stats must be different from each other using the Fighter # as seed
     function _generateFighterStats() internal view returns (uint256, uint256, uint256) {
         uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
         uint256 _strength = (_seed % 5) + 1;
@@ -112,17 +105,13 @@ contract Dojo is Ownable, ERC1155 {
     }
 
     function createFighter() public {
-        // Vérifier si l'utilisateur a déjà un combattant
         if (ownerFighterCount[msg.sender] == 0) {
-            // Si l'utilisateur n'a pas de combattant, en créer un pour lui
             _createFighter();
         }else{
-            // Si l'utilisateur a déjà un combattant, ne rien faire
             revert("You already have a fighter, pay to create a new one");
         }
     }
 
-    // Fonction qui permet de return le nom du fichier en string
     function uri(uint256 _tokenid) override public pure returns (string memory) {
         return string(
             abi.encodePacked(
@@ -132,61 +121,47 @@ contract Dojo is Ownable, ERC1155 {
         );
     }
 
-    // Fonction payable qui permet de payer pour augmenter le nombre de GOLD
     function payForGold() public payable {
         require(msg.value == 0.01 ether, "You must pay at least 0.01 ETH to get gold");
         _mint(msg.sender, GOLD, 10, "");
     }
 
-    // Fonction qui permet de payer pour créer un nouveau combattant si l'utilisateur détient déjà un combattant
-    function payToCreateFighter() public {
-        require(balanceOf(msg.sender, GOLD) >= 5, "You need to have 5 GOLD");
+    function payToCreateFighter() public hasEnoughGold(5) {
         _burn(msg.sender, GOLD, 5);
         _createFighter();
     }
 
-    // Fonction pour payer lorsque le combattant arrive à 3 blessures pour le soigner et le remettre à 0 en payant 2 gold
-    function payToHealFighter(uint256 _fighterId) public {
-        require(balanceOf(msg.sender, GOLD) >= 2, "You need to have 2 GOLD");
-        require(fighterToOwner[_fighterId] == msg.sender, "You are not the owner of this fighter");
+    function payToHealFighter(uint256 _fighterId) public hasEnoughGold(2) onlyOwnerOf(_fighterId) {
         require(fighters[_fighterId].wounds == 3, "Your fighter is not wounded");
         _burn(msg.sender, GOLD, 2);
         fighters[_fighterId].wounds = 0;
     }
 
-    // Fonction qui permet de récuperer le solde du contrat Dojo
     function withdrawEther() public onlyOwner {
-        // Récupérer l'ether détenu par le contrat et le transférer à l'appelant
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    // Fonction pour récuperer le nombre de gold de l'utilisateur
     function getGoldBalance(address _user) public view returns (uint256) {
         return balanceOf(_user, GOLD);
     }
 
-    // Fonction qui permet de récupérer le nombre de combattants d'un propriétaire
     function getOwnerFighterCount(address _owner) public view returns (uint) {
         return ownerFighterCount[_owner];
     }
 
-    // Fonction qui permet de récupérer le propriétaire d'un combattant
     function getFighterOwner(uint256 _id) public view returns (address) {
         return fighterToOwner[_id];
     }
 
-    // Fonction qui permet de récupérer les informations d'un combattant
     function getFighter(uint256 _id) public view returns (Fighter memory) {
         Fighter memory _fighter = fighters[_id];
         return _fighter;
     }
 
-    // Fonction qui permet de récupérer le nombre de combattants
     function getFightersCount() public view returns (uint) {
         return fighters.length;
     }
 
-    // Fonction qui permet de récupérer la liste des combattants du msg.sender
     function getFighters() public view returns (uint256[] memory) {
         uint256[] memory result = new uint256[](ownerFighterCount[msg.sender]);
         uint counter = 0;
@@ -199,7 +174,6 @@ contract Dojo is Ownable, ERC1155 {
         return result;
     }
 
-    //Méthode 'Fight' entre deux token Fighter et mettre à jour uniquement le combattant qui attaque. Combat par rapport aux stats de chaque combattant
     function fight(uint256 _fighterId, uint256 _opponentId) public onlyOwnerOf(_fighterId) {
         require(fighterToOwner[_opponentId] != msg.sender, "You can't fight yourself");
         require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
@@ -220,13 +194,11 @@ contract Dojo is Ownable, ERC1155 {
         }
     }
 
-    // Fonction qui permet de return le score d'un combattant using safeMath
     function getFighterScore(uint256 _fighterId) public view returns (uint256) {
         return fighters[_fighterId].strength.add(fighters[_fighterId].speed).add(fighters[_fighterId].endurance);
     }
 
-    function levelUp(uint256 _fighterId) public onlyOwnerOf(_fighterId) hasEnoughXP(_fighterId) {
-        require(balanceOf(msg.sender, GOLD) >= 1, "You need to have 1 GOLD");
+    function levelUp(uint256 _fighterId) public onlyOwnerOf(_fighterId) hasEnoughXP(_fighterId) hasEnoughGold(1) {
         _burn(msg.sender, GOLD, 1);
         uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
         uint256 _bonus = (_seed % 5) + 1;
@@ -248,32 +220,20 @@ contract Dojo is Ownable, ERC1155 {
 
     }
 
-    //Methode afin de mettre en vente un token Fighter sur le marché uniquement si l'utilisateur possède plus d'un combattant
-    function sellFighter(uint256 _fighterId, uint256 _price) public {
+    function sellFighter(uint256 _fighterId, uint256 _price) public onlyOwnerOf(_fighterId) {
         require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
-        require(fighterToOwner[_fighterId] == msg.sender, "You don't own this fighter");
-        // Transférer le token à l'adresse 0x0 (état "non-propriétaire")
         _safeTransferFrom(msg.sender, address(0), FIGHTER, 1, "");
-        // Enregistrer l'offre de vente
         fighterSellOffers[_fighterId] = FighterSell(_fighterId, msg.sender, _price);
         emit FighterForSale(_fighterId, _price);
     }
 
-    //Methode afin d'acheter un token Fighter sur le marché
-    function buyFighter(uint256 _fighterId) public payable {
-        // Vérifier qu'il y a une offre de vente en cours pour ce token
+    function buyFighter(uint256 _fighterId) public payable hasEnoughGold(fighterSellOffers[_fighterId].price) {
         require(fighterSellOffers[_fighterId].price > 0, "This fighter is not for sale");
-        // Vérifier que l'acheteur a suffisamment de fonds
-        require(msg.value >= fighterSellOffers[_fighterId].price, "You do not have enough funds to buy this fighter");
-        // Transférer le token à l'acheteur
         _safeTransferFrom(address(0), msg.sender, FIGHTER, 1, "");
-        // Mettre à jour le propriétaire du token
         fighterToOwner[_fighterId] = msg.sender;
-        // Enlever l'offre de vente
         fighterSellOffers[_fighterId].price = 0;
     }
 
-    //Methode pour récupérer la liste des combattants en vente
     function getFightersOnSale() public view returns (uint256[] memory) {
         uint256[] memory result = new uint256[](fighters.length);
         uint counter = 0;
@@ -286,7 +246,6 @@ contract Dojo is Ownable, ERC1155 {
         return result;
     }
 
-    //Methode pour récupérer la liste des combattants en vente d'un utilisateur
     function getFightersOnSaleByUser() public view returns (uint256[] memory) {
         uint256[] memory result = new uint256[](fighters.length);
         uint counter = 0;
@@ -299,33 +258,21 @@ contract Dojo is Ownable, ERC1155 {
         return result;
     }
 
-    // Méthode pour proposer un échange
-    function proposeTrade(uint256 _fighterId, uint256 _otherFighterId, address _otherAddress) public {
-        // Vérifier que le propriétaire actuel est bien celui qui essaie de faire l'échange
-        require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
-        // Créer une demande d'échange
+    function proposeTrade(uint256 _fighterId, uint256 _otherFighterId, address _otherAddress) public onlyOwnerOf(_fighterId) {
         uint _requestId = tradeCount;
         tradeRequests[_requestId] = TradeRequest(_fighterId, _otherFighterId, _otherAddress, false);
         tradeCount++;
-        // Emettre un événement pour informer l'autre utilisateur de la demande
         emit TradeProposed(_requestId, _fighterId, _otherFighterId, _otherAddress);
     }
 
     function acceptTrade(uint _requestId) public {
-        // Vérifier que l'utilisateur est bien l'autre utilisateur de la demande
         require(msg.sender == tradeRequests[_requestId].otherAddress, "You are not the intended recipient of this trade");
-        // Vérifier que l'échange n'a pas déjà été accepté
         require(!tradeRequests[_requestId].accepted, "This trade has already been accepted");
-        // Transférer votre token à l'autre utilisateur
         _safeTransferFrom(msg.sender, tradeRequests[_requestId].otherAddress, FIGHTER, tradeRequests[_requestId].tokenId, "");
-        // Transférer le token de l'autre utilisateur à vous
         _safeTransferFrom(tradeRequests[_requestId].otherAddress, msg.sender, FIGHTER, tradeRequests[_requestId].otherTokenId, "");
-        // Mettre à jour les propriétaires des tokens
         fighterToOwner[tradeRequests[_requestId].tokenId] = tradeRequests[_requestId].otherAddress;
         fighterToOwner[tradeRequests[_requestId].otherTokenId] = msg.sender;
-        // Supprimer la demande d'échange
         delete tradeRequests[_requestId];
-        // Emettre un événement pour informer les utilisateurs que l'échange est terminé
         emit TradeExecuted(_requestId);
     }
 
