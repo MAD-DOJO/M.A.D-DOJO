@@ -90,9 +90,9 @@ describe("Dojo Smart Contract Test", function () {
         });
     });
 
-    describe("Fighting", function () {
+    describe("Leveling up and Fighting", function () {
         let hardhatDojo, owner, addr1, addr2;
-        let [winnerAddress, winnerId] = [];
+        let [winnerAddress, winnerId, winningFighter] = [];
         let [loserAddress, loserId] = [];
         beforeEach(async function () {
             ({ hardhatDojo, owner, addr1, addr2 } = await loadFixture(deployTokenFixture));
@@ -104,7 +104,7 @@ describe("Dojo Smart Contract Test", function () {
             let fighter1Score = await hardhatDojo.getFighterScore(0);
             let fighter2Score = await hardhatDojo.getFighterScore(1);
             // make sure the scores are different
-            while (fighter1Score === fighter2Score) {
+            while (Number(fighter1Score) === Number(fighter2Score)) {
                 await hardhatDojo.connect(addr2).createFighter({ from: addr2.address });
                 fighter2 = await hardhatDojo.getFighter(1);
                 fighter2Score = await hardhatDojo.getFighterScore(1);
@@ -112,43 +112,122 @@ describe("Dojo Smart Contract Test", function () {
             if (Number(fighter1Score) > Number(fighter2Score)) {
                 winnerAddress = addr1;
                 winnerId = 0;
+                winningFighter = fighter1;
                 loserAddress = addr2;
                 loserId = 1;
             }else{
                 winnerAddress = addr2;
                 winnerId = 1;
+                winningFighter = fighter2;
                 loserAddress = addr1;
                 loserId = 0;
             }
         });
 
-        it("should revert if the user does not use is fighter", async function () {
-            await expect(
-                hardhatDojo.connect(addr1).fight(1, 0, { from: addr1.address })
-            ).to.be.revertedWith("You are not the owner of this fighter");
+        describe("Leveling up", function () {
+            it("should revert if the user tries to level up a fighter with no gold", async function () {
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await expect(
+                    hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                ).to.be.revertedWith("You do not have enough gold");
+            });
+
+            it("should revert if the user tries to level up a fighter that is not ready to level up", async function () {
+                await expect(
+                    hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                ).to.be.revertedWith("Fighter does not have enough XP");
+            });
+
+            it("should level up a fighter when all the required conditions are met", async function () {
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await expect (
+                    await hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                ).to.emit(hardhatDojo, "FighterLevelUp");
+            });
+
+            it("should increase the fighter's level by 1 when leveled up", async function () {
+                let baselevel = winningFighter.level;
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                winningFighter = await hardhatDojo.getFighter(winnerId);
+                expect(winningFighter.level).to.equal(baselevel + 1);
+            });
+
+            it("should restore the fighter's XP to 0 when leveled up", async function () {
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                winningFighter = await hardhatDojo.getFighter(winnerId);
+                expect(winningFighter.xp).to.equal(0);
+            });
+
+            it("should increase one random stat when leveld up", async function () {
+                let fighterBaseStats = winningFighter;
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address })
+                winningFighter = await hardhatDojo.getFighter(winnerId);
+                if(fighterBaseStats.strength < winningFighter.strength) {
+                    expect(winningFighter.strength).to.greaterThan(fighterBaseStats.strength);
+                }else if(fighterBaseStats.speed < winningFighter.speed) {
+                    expect(winningFighter.speed).to.greaterThan(fighterBaseStats.speed);
+                }else if(fighterBaseStats.endurance < winningFighter.endurance) {
+                    expect(winningFighter.endurance).to.greaterThan(fighterBaseStats.endurance);
+                }
+            });
         });
 
-        it("should revert if the user fight himself", async function () {
-            await expect(
-                hardhatDojo.connect(addr1).fight(0, 0, { from: addr1.address })
-            ).to.be.revertedWith("You can't fight yourself");
-        });
+        describe("Fighting", function () {
+            it("should revert if the user does not use is fighter", async function () {
+                await expect(
+                    hardhatDojo.connect(addr1).fight(1, 0, { from: addr1.address })
+                ).to.be.revertedWith("You are not the owner of this fighter");
+            });
 
-        it("should revert if the user fight a wounded fighter", async function () {
-            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
-            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
-            await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
-            await expect(
-                hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address })
-            ).to.be.revertedWith("Your fighter is wounded, you need to heal him");
-        });
+            it("should revert if the user fight himself", async function () {
+                await expect(
+                    hardhatDojo.connect(addr1).fight(0, 0, { from: addr1.address })
+                ).to.be.revertedWith("You can't fight yourself");
+            });
 
-        //TODO test if fighters level are the same
-        it("should revert if the user fight a fighter with a different level", async function () {
-            await hardhatDojo.connect(addr1).fight(0, 1, { from: addr1.address });
-            await expect(
-                hardhatDojo.connect(addr1).fight(0, 1, { from: addr1.address })
-            ).to.be.revertedWith("You can't fight a fighter with a different level");
+            it("should revert if the user fight a wounded fighter", async function () {
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address });
+                await expect(
+                    hardhatDojo.connect(loserAddress).fight(loserId, winnerId, { from: loserAddress.address })
+                ).to.be.revertedWith("Your fighter is wounded, you need to heal him");
+            });
+
+            //TODO test if fighters level are the same
+            it("should revert if the user fight a fighter with a different level", async function () {
+                while (winningFighter.xp < winningFighter.xpToNextLevel) {
+                    await hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address });
+                    winningFighter = await hardhatDojo.getFighter(winnerId);
+                }
+                await hardhatDojo.connect(winnerAddress).payForGold({ from: winnerAddress.address, value: ethers.utils.parseEther("0.01") });
+                await hardhatDojo.connect(winnerAddress).levelUp(winnerId, { from: winnerAddress.address });
+                await expect(
+                    hardhatDojo.connect(winnerAddress).fight(winnerId, loserId, { from: winnerAddress.address })
+                ).to.be.revertedWith("You can't fight a fighter with a different level");
+            });
         });
     });
 
