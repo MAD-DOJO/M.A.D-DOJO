@@ -44,7 +44,7 @@ npx hardhat run scripts/deploy.js --network goerli
 ```
 
 ### Deploy on Etherscan :
-- Ajouter un fichier .env à la racine du projet
+-Add .env file at root
 ```dotenv
 API_URL=API URL OF YOUR INFURA PROJECT
 PRIVATE_KEY=PRIVATE KEY OF YOUR ACCOUNT
