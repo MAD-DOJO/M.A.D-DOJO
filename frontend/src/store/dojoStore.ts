@@ -13,6 +13,7 @@ export const dojoStore = defineStore('dojoStore',{
     state: () => {
         return {
             fighters: [] as Array<Fighter>,
+            opponent: {} as Fighter,
             fighterCount: 0,
             gold: 0,
         }
@@ -77,6 +78,39 @@ export const dojoStore = defineStore('dojoStore',{
         async payToCreateFighter() {
             await contract.connect(provider.getSigner()).payToCreateFighter();
             await this.loadFighters();
+        },
+
+        async getFighter(fighterId: number) {
+            const fighter = await contract.connect(provider.getSigner()).getFighter(fighterId);
+            console.log("Opponents: ", fighter);
+            this.opponent = {
+                name: fighter.name,
+                level: fighter.level,
+                xp: fighter.xp,
+                xpToNextLevel: fighter.xpToNextLevel,
+                uri: fighter.uri,
+                rank: fighter.rank,
+                strength: fighter.strength.toNumber(),
+                speed: fighter.speed.toNumber(),
+                endurance: fighter.endurance.toNumber(),
+                wins: fighter.wins.toNumber(),
+                losses: fighter.losses.toNumber(),
+                wounds: fighter.wounds.toNumber(),
+            }
+            console.log("THIS Opponent: ", this.opponent);
+        },
+
+        async fight(fighterName: string, opponentName: string) {
+            const fighterId = fighterName.split("#")[1];
+            console.log("FighterID : " ,fighterId);
+            const opponentId = opponentName.split("#")[1];
+            console.log("OpponeentId : " ,opponentId);
+            await contract.connect(provider.getSigner()).fight(fighterId, opponentId);
+        },
+
+        async heal(fighterName: string) {
+            const fighterId = fighterName.split("#")[1];
+            await contract.connect(provider.getSigner()).payToHealFighter(fighterId);
         }
     },
     persist: true,
