@@ -37,6 +37,10 @@ export default {
   name: "FighterCard",
   props: {
     fighter: Object,
+    selected: {
+      type: Boolean,
+      default: false
+    },
     isWithDetails: {
       type: Boolean,
       default: false
