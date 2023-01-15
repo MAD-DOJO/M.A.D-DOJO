@@ -9,6 +9,10 @@ const wallet = useMetaMaskWallet();
 window.ethereum.on('accountsChanged', function (accounts: any) {
     // Time to reload your interface with accounts[0]!
     accountStore().setAccount(accounts[0]).then();
+    dojoStore().initializeDojo().then(r => {
+        router.push('/dojo').then(r => {
+        });
+    });
 })
 
 window.ethereum.on('chainChanged', function (networkId: any) {

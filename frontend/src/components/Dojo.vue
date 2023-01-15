@@ -60,10 +60,6 @@ export default defineComponent({
       selectedFighter: {}
     }
   },
-  methods: {
-  },
-  mounted() {
-  }
 })
 </script>
 

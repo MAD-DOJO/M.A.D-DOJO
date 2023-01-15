@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
 
 contract Dojo is Ownable, ERC1155 {
 
@@ -16,8 +15,8 @@ contract Dojo is Ownable, ERC1155 {
     event FighterLevelUp(uint fighterId, uint bonus, uint stat);
     event FighterFightResult(uint fighterId, uint opponentId, string result);
     event FighterForSale(uint fighterId, uint price);
-    event TradeProposed(uint requestId, uint fighterId, uint otherFighterId, address otherAddress);
-    event TradeExecuted(uint requestId);
+    event FighterBought(uint fighterId, address buyer, uint price);
+    event FighterIsHealed(uint fighterId);
 
     modifier onlyOwnerOf(uint _fighterId) {
         require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
@@ -49,9 +48,9 @@ contract Dojo is Ownable, ERC1155 {
         uint256 strength;
         uint256 speed;
         uint256 endurance;
-        uint wins;
-        uint losses;
-        uint wounds;
+        uint256 wins;
+        uint256 losses;
+        uint256 wounds;
     }
 
     struct FighterSell {
@@ -127,6 +126,7 @@ contract Dojo is Ownable, ERC1155 {
         require(fighters[_fighterId].wounds == 3, "Your fighter is not wounded");
         _burn(msg.sender, GOLD, 2);
         fighters[_fighterId].wounds = 0;
+        emit FighterIsHealed(_fighterId);
     }
 
     function withdrawEther() public onlyOwner {
@@ -166,6 +166,10 @@ contract Dojo is Ownable, ERC1155 {
         return _fighters;
     }
 
+    function getAllFighters() public view returns (Fighter[] memory) {
+        return fighters;
+    }
+
     function fight(uint256 _fighterId, uint256 _opponentId) public onlyOwnerOf(_fighterId) {
         require(fighterToOwner[_opponentId] != msg.sender, "You can't fight yourself");
         require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
@@ -176,9 +180,11 @@ contract Dojo is Ownable, ERC1155 {
         uint256 _opponentScore = getFighterScore(_opponentId);
         if (_fighterScore > _opponentScore || _fighterScore == _opponentScore) {
             fighters[_fighterId].xp++;
+            fighters[_fighterId].wins++;
             emit FighterFightResult(_fighterId, _opponentId, 'Won');
         } else {
             fighters[_fighterId].wounds++;
+            fighters[_fighterId].losses++;
             emit FighterFightResult(_fighterId ,_opponentId, 'Lost');
         }
     }
@@ -217,41 +223,20 @@ contract Dojo is Ownable, ERC1155 {
         require(fighterSellOffers[_fighterId].seller != msg.sender, "You can't buy your own fighter");
         _safeTransferFrom(fighterSellOffers[_fighterId].seller, msg.sender, FIGHTER, 1, "");
         fighterToOwner[_fighterId] = msg.sender;
+        ownerFighterCount[fighterSellOffers[_fighterId].seller]--;
+        ownerFighterCount[msg.sender]++;
         _burn(msg.sender, GOLD, fighterSellOffers[_fighterId].price);
+        emit FighterBought(_fighterId, msg.sender, fighterSellOffers[_fighterId].price);
+        for (uint i = 0; i < sellOffers.length; i++) {
+            if (sellOffers[i].tokenId == _fighterId) {
+                delete sellOffers[i];
+                break;
+            }
+        }
         delete fighterSellOffers[_fighterId];
     }
 
     function getSellOffers() public view returns (FighterSell[] memory) {
         return sellOffers;
-    }
-
-    function getFightersOnSaleByUser() public view returns (uint256[] memory) {
-        uint256[] memory result = new uint256[](fighters.length);
-        uint counter = 0;
-        for (uint i = 0; i < fighters.length; i++) {
-            if (fighterSellOffers[i].price > 0 && fighterSellOffers[i].seller == msg.sender) {
-                result[counter] = i;
-                counter++;
-            }
-        }
-        return result;
-    }
-
-    function proposeTrade(uint256 _fighterId, uint256 _otherFighterId, address _otherAddress) public onlyOwnerOf(_fighterId) {
-        uint _requestId = tradeCount;
-        tradeRequests[_requestId] = TradeRequest(_fighterId, _otherFighterId, _otherAddress, false);
-        tradeCount++;
-        emit TradeProposed(_requestId, _fighterId, _otherFighterId, _otherAddress);
-    }
-
-    function acceptTrade(uint _requestId) public {
-        require(msg.sender == tradeRequests[_requestId].otherAddress, "You are not the intended recipient of this trade");
-        require(!tradeRequests[_requestId].accepted, "This trade has already been accepted");
-        _safeTransferFrom(msg.sender, tradeRequests[_requestId].otherAddress, FIGHTER, tradeRequests[_requestId].tokenId, "");
-        _safeTransferFrom(tradeRequests[_requestId].otherAddress, msg.sender, FIGHTER, tradeRequests[_requestId].otherTokenId, "");
-        fighterToOwner[tradeRequests[_requestId].tokenId] = tradeRequests[_requestId].otherAddress;
-        fighterToOwner[tradeRequests[_requestId].otherTokenId] = msg.sender;
-        delete tradeRequests[_requestId];
-        emit TradeExecuted(_requestId);
     }
 }
