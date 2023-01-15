@@ -3,6 +3,7 @@ import {ethers} from 'ethers';
 import {Fighter, Rank} from '../utils/interfaces/fighter';
 import Dojo from '../../../artifacts/contracts/Dojo.sol/Dojo.json';
 import {POSITION, useToast} from "vue-toastification";
+import router from "../router/router";
 
 const toast = useToast();
 
@@ -72,10 +73,22 @@ export const dojoStore = defineStore('dojoStore',{
             }else{
                 await contract.connect(provider.getSigner()).payToCreateFighter();
                 await this.loadFighters();
+                await this.loadGold();
             }
         },
         async payToCreateFighter() {
             await contract.connect(provider.getSigner()).payToCreateFighter();
+            await this.loadFighters();
+        },
+        async loadTradingOffers() {
+            return await contract.connect(provider.getSigner()).getSellOffers();
+        },
+        async sellFighter(tokenId: number, price: number) {
+            await contract.connect(provider.getSigner()).sellFighter(tokenId, price);
+            await this.loadFighters();
+        },
+        async buyFighter(tokenId: number) {
+            await contract.connect(provider.getSigner()).buyFighter(tokenId);
             await this.loadFighters();
         }
     },
@@ -103,11 +116,16 @@ contract.on('FighterFightResult', (fighterId, opponentId, result) => {
     console.log('FighterFightResult', fighterId, opponentId, result);
 });
 contract.on('FighterForSale', (fighterId, price) => {
+    toast.success(`Fighter with id: ${fighterId} is now for sale for ${price} gold`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
     console.log('FighterForSale', fighterId, price);
 });
-contract.on('TradeProposed', (requestId, fighterId, otherFighterId, otherAddress) => {
-    console.log('TradeProposed', requestId, fighterId, otherFighterId, otherAddress);
-});
-contract.on('TradeExecuted', (requestId) => {
-    console.log('TradeExecuted', requestId);
+contract.on('FighterBought', (fighterId, seller, price) => {
+    toast.success(`Fighter with id: ${fighterId} is now yours for ${price} gold`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
+    dojoStore().loadFighters().then(r => console.log(r));
 });
