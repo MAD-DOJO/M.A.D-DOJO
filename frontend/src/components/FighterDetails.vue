@@ -1,9 +1,36 @@
 <template>
-  <FighterCard :fighter="fighter" :is-with-details="true" class="hover:bg-gray-600"/>
-  <div class="justify-end align-text-bottom space-y-4 sm:flex sm:space-y-0 sm:space-x-4 pt-1">
-    <a class="w-full sm:w-auto bg-green-800 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 text-white rounded-lg inline-flex items-center justify-center px-1 py-1 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-700" href="#">
-      <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="store.heal(fighter.name)">Heal Fighter</div>
-    </a>
+  <div class="flex mt-5">
+    <FighterCard :fighter="fighter" :is-with-details="true" class="hover:bg-gray-600"/>
+    <div class="flex">
+      <div class="ml-2 mt-10">
+        <p>
+          <span class="font-bold">Rank: </span>
+          <span>{{ fighter.rank }}</span>
+        </p>
+        <p>
+          <span class="font-bold">Wins: </span>
+          <span>{{ fighter.wins }}</span>
+        </p>
+        <p>
+          <span class="font-bold">Losses: </span>
+          <span>{{ fighter.losses }}</span>
+        </p>
+        <p>
+          <span class="font-bold">Xp: </span>
+          <span>{{ fighter.xp }} / {{fighter.xpToNextLevel}}</span>
+        </p>
+      </div>
+      <button class="bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-300 ml-5 h-10 mt-16"
+              v-on:click="store.heal(fighter.name)"
+              v-bind:disabled="fighter.wounds < 3">
+        Heal Fighter
+      </button>
+      <button class="bg-orange-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-300 ml-5 h-10 mt-16"
+              v-on:click="store.levelUp(fighter.name)"
+              v-bind:disabled="fighter.xp < fighter.xpToNextLevel">
+        Level UP
+      </button>
+    </div>
   </div>
 </template>
 

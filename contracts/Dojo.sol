@@ -88,7 +88,7 @@ contract Dojo is Ownable, ERC1155 {
         uint256 _id = fighters.length;
         string memory _name = string.concat("Fighter#", Strings.toString(_id));
         (uint _strength, uint _speed, uint _endurance) = _generateFighterStats();
-        fighters.push(Fighter(_name, 1, 0, 6, 'https://bafkreifrm3g3ntvejidi2ka4j5gho6pofw2ggsw3oien2mgqtuazd7jgoa.ipfs.nftstorage.link', Rank.Beginner, _strength, _speed, _endurance, 0, 0, 0));
+        fighters.push(Fighter(_name, 1, 0, 3, 'https://bafkreifrm3g3ntvejidi2ka4j5gho6pofw2ggsw3oien2mgqtuazd7jgoa.ipfs.nftstorage.link', Rank.Beginner, _strength, _speed, _endurance, 0, 0, 0));
         _mint(msg.sender, FIGHTER, 1, "");
         fighterToOwner[_id] = msg.sender;
         ownerFighterCount[msg.sender]++;
@@ -207,11 +207,25 @@ contract Dojo is Ownable, ERC1155 {
         }
         fighters[_fighterId].xp = 0;
         fighters[_fighterId].level++;
+        if (fighters[_fighterId].level == 2) {
+            fighters[_fighterId].rank = Rank.Novice;
+        } else if (fighters[_fighterId].level == 3) {
+            fighters[_fighterId].rank = Rank.Apprentice;
+        } else if (fighters[_fighterId].level == 4) {
+            fighters[_fighterId].rank = Rank.Adept;
+        } else if (fighters[_fighterId].level == 5) {
+            fighters[_fighterId].rank = Rank.Master;
+        } else if (fighters[_fighterId].level == 6) {
+            fighters[_fighterId].rank = Rank.GrandMaster;
+        } else if (fighters[_fighterId].level == 7) {
+            fighters[_fighterId].rank = Rank.Legendary;
+        }
         emit FighterLevelUp(_fighterId, _bonus, _stat);
     }
 
     function sellFighter(uint256 _fighterId, uint256 _price) public onlyOwnerOf(_fighterId) {
         require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
+        require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
         require(_price > 0, "Price must be greater than 0");
         fighterSellOffers[_fighterId] = FighterSell(_fighterId, msg.sender, _price);
         sellOffers.push(FighterSell(_fighterId, msg.sender, _price));

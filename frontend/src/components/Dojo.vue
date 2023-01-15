@@ -7,9 +7,9 @@
     </div>
   </vue-final-modal>
   <div class="grid grid-cols-2 gap-2">
-    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5" style="height:55vh;">
+    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5" style="height:85vh;">
       <h5 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Vos combattants</h5>
-      <div class="grid grid-cols-4 gap-4 overflow-auto" style="height:40vh;">
+      <div class="grid grid-cols-4 gap-4 overflow-auto" style="height:60vh;">
         <div v-for="fighter in store.fighters" class="mr-2 mt-2">
           <FighterCard :fighter="fighter" v-on:click="selectedFighter = fighter;showFighterDetailModal= true" class="hover:bg-gray-600"/>
         </div>
@@ -32,11 +32,6 @@
           </div>
         </a>
       </div>
-    </div>
-  </div>
-  <div class="p-4 bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5" style="height: 25vh">
-    <div class="bg-white rounded-2xl h-10">
-      zqdqzd
     </div>
   </div>
 </template>

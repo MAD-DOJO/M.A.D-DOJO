@@ -3,7 +3,6 @@ import {ethers} from 'ethers';
 import {Fighter, Rank} from '../utils/interfaces/fighter';
 import Dojo from '../../../artifacts/contracts/Dojo.sol/Dojo.json';
 import {POSITION, useToast} from "vue-toastification";
-import router from "../router/router";
 
 const toast = useToast();
 
@@ -14,7 +13,6 @@ export const dojoStore = defineStore('dojoStore',{
     state: () => {
         return {
             fighters: [] as Array<Fighter>,
-            opponent: {} as Fighter,
             fighterCount: 0,
             gold: 0,
         }
@@ -28,7 +26,7 @@ export const dojoStore = defineStore('dojoStore',{
         },
         getGold: (state) => {
             return state.gold;
-        },
+        }
     },
     actions: {
         async initializeDojo() {
@@ -92,35 +90,39 @@ export const dojoStore = defineStore('dojoStore',{
             await contract.connect(provider.getSigner()).buyFighter(tokenId);
             await this.loadFighters();
         },
-        async getFighter(fighterId: number) {
-            const fighter = await contract.connect(provider.getSigner()).getFighter(fighterId);
-            console.log("Opponents: ", fighter);
-            this.opponent = {
-                name: fighter.name,
-                level: fighter.level,
-                xp: fighter.xp,
-                xpToNextLevel: fighter.xpToNextLevel,
-                uri: fighter.uri,
-                rank: fighter.rank,
-                strength: fighter.strength.toNumber(),
-                speed: fighter.speed.toNumber(),
-                endurance: fighter.endurance.toNumber(),
-                wins: fighter.wins.toNumber(),
-                losses: fighter.losses.toNumber(),
-                wounds: fighter.wounds.toNumber(),
-            }
-            console.log("THIS Opponent: ", this.opponent);
+        async loadAllFightersByLevel(level: number) {
+            const fighterList = await contract.connect(provider.getSigner()).getAllFighters();
+            return fighterList.map((fighter: any) => {
+                if(fighter.level === level){
+                    return {
+                        name: fighter.name,
+                        level: fighter.level,
+                        xp: fighter.xp,
+                        xpToNextLevel: fighter.xpToNextLevel,
+                        uri: fighter.uri,
+                        rank: Rank[fighter.rank],
+                        strength: fighter.strength.toNumber(),
+                        speed: fighter.speed.toNumber(),
+                        endurance: fighter.endurance.toNumber(),
+                        wins: fighter.wins.toNumber(),
+                        losses: fighter.losses.toNumber(),
+                        wounds: fighter.wounds.toNumber(),
+                    }
+                }
+            });
         },
         async fight(fighterName: string, opponentName: string) {
             const fighterId = fighterName.split("#")[1];
-            console.log("FighterID : " ,fighterId);
             const opponentId = opponentName.split("#")[1];
-            console.log("OpponeentId : " ,opponentId);
             await contract.connect(provider.getSigner()).fight(fighterId, opponentId);
         },
         async heal(fighterName: string) {
             const fighterId = fighterName.split("#")[1];
             await contract.connect(provider.getSigner()).payToHealFighter(fighterId);
+        },
+        async levelUp(fighterName: string) {
+            const fighterId = fighterName.split("#")[1];
+            await contract.connect(provider.getSigner()).levelUp(fighterId);
         }
     },
     persist: true,
@@ -141,20 +143,34 @@ contract.on('NewGold', (amount, name) => {
     dojoStore().loadGold().then(r => console.log(r));
 });
 contract.on('FighterLevelUp', (fighterId, bonus, stat) => {
-    console.log('FighterLevelUp', fighterId, bonus, stat);
+    toast.success(`Fighter #${fighterId} level up with ${bonus} ${stat}`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
+    dojoStore().loadFighters().then(r => console.log(r));
 });
 contract.on('FighterFightResult', (fighterId, opponentId, result) => {
-    console.log('FighterFightResult', fighterId, opponentId, result);
+    toast.success(`Fighter ${fighterId} fight against ${opponentId} and the result is ${result}`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
 });
 contract.on('FighterForSale', (fighterId, price) => {
     toast.success(`Fighter with id: ${fighterId} is now for sale for ${price} gold`, {
         position: POSITION.TOP_CENTER,
         timeout: 5000,
     });
-    console.log('FighterForSale', fighterId, price);
 });
 contract.on('FighterBought', (fighterId, seller, price) => {
     toast.success(`Fighter with id: ${fighterId} is now yours for ${price} gold`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
+    dojoStore().loadFighters().then(r => console.log(r));
+});
+
+contract.on('FighterIsHealed', (fighterId) => {
+    toast.success(`Fighter with id: ${fighterId} is now healed`, {
         position: POSITION.TOP_CENTER,
         timeout: 5000,
     });
