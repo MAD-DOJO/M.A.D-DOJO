@@ -1,14 +1,17 @@
 import {defineStore} from "pinia";
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import {Fighter, Rank} from '../utils/interfaces/fighter';
 import Dojo from '../../../artifacts/contracts/Dojo.sol/Dojo.json';
-const provider = new ethers.providers.Web3Provider(window.ethereum);
+import {POSITION, useToast} from "vue-toastification";
 
+const toast = useToast();
+
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const contract = new ethers.Contract(import.meta.env.VITE_DOJO_CONTRACT || '', Dojo.abi, provider);
 
 export const dojoStore = defineStore('dojoStore',{
     state: () => {
         return {
-            contractAddress: import.meta.env.VITE_DOJO_CONTRACT || '',
             fighters: [] as Array<Fighter>,
             fighterCount: 0,
             gold: 0,
@@ -32,7 +35,6 @@ export const dojoStore = defineStore('dojoStore',{
             await this.loadGold();
         },
         async loadFighters() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
             const fighters = await contract.connect(provider.getSigner()).getMyFighters();
             this.fighters = fighters.map((fighter: any) => {
                 return {
@@ -52,36 +54,60 @@ export const dojoStore = defineStore('dojoStore',{
             });
         },
         async loadFighterCount() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
             let fighterCountPromise = await contract.getOwnerFighterCount(provider.getSigner().getAddress());
             this.fighterCount = fighterCountPromise.toNumber();
         },
         async loadGold() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
             let goldPromise = await contract.getGoldBalance(provider.getSigner().getAddress());
             this.gold = goldPromise.toNumber();
         },
         async payForGold() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
             await contract.connect(provider.getSigner()).payForGold({value: ethers.utils.parseEther('0.01')});
             await this.loadGold();
         },
         async createFighter() {
-            if(this.fighterCount <= 0){
-                const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
+            if(this.fighters.length <= 0){
                 await contract.connect(provider.getSigner()).createFighter();
                 await this.loadFighters();
             }else{
-                const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
                 await contract.connect(provider.getSigner()).payToCreateFighter();
                 await this.loadFighters();
             }
         },
         async payToCreateFighter() {
-            const contract = new ethers.Contract(this.contractAddress, Dojo.abi, provider);
             await contract.connect(provider.getSigner()).payToCreateFighter();
             await this.loadFighters();
         }
     },
     persist: true,
 })
+
+contract.on('NewFighter', (fighterId, name) => {
+    toast.success(`New Fighter: ${name} with id: ${fighterId}`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
+    dojoStore().loadFighters().then(r => console.log(r));
+});
+contract.on('NewGold', (amount, name) => {
+    toast.success(`You receive : ${amount} ${name}`, {
+        position: POSITION.TOP_CENTER,
+        timeout: 5000,
+    });
+    dojoStore().loadGold().then(r => console.log(r));
+});
+contract.on('FighterLevelUp', (fighterId, bonus, stat) => {
+    console.log('FighterLevelUp', fighterId, bonus, stat);
+});
+contract.on('FighterFightResult', (fighterId, opponentId, result) => {
+    console.log('FighterFightResult', fighterId, opponentId, result);
+});
+contract.on('FighterForSale', (fighterId, price) => {
+    console.log('FighterForSale', fighterId, price);
+});
+contract.on('TradeProposed', (requestId, fighterId, otherFighterId, otherAddress) => {
+    console.log('TradeProposed', requestId, fighterId, otherFighterId, otherAddress);
+});
+contract.on('TradeExecuted', (requestId) => {
+    console.log('TradeExecuted', requestId);
+});

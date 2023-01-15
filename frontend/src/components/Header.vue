@@ -21,6 +21,7 @@
         <!-- Secondary Nav -->
         <div class="hidden md:flex items-center space-x-3">
           <ConnectWalletButton v-bind:address="store.account" v-on:click="connectWallet"/>
+          <button class="bg-red-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-300" v-on:click="disconnectWallet" v-if="store.isConnected">X</button>
         </div>
       </div>
     </div>
@@ -44,6 +45,9 @@ export default defineComponent({
   methods: {
     connectWallet() {
       this.store.connectWallet();
+    },
+    disconnectWallet() {
+      this.store.disconnectWallet();
     },
   },
 });

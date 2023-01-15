@@ -12,7 +12,7 @@ contract Dojo is Ownable, ERC1155 {
     using SafeMath for uint256;
 
     event NewFighter(uint fighterId, string name);
-    event NewGold(uint goldId, string name);
+    event NewGold(uint amount, string name);
     event FighterLevelUp(uint fighterId, uint bonus, uint stat);
     event FighterFightResult(uint fighterId, uint opponentId, string result);
     event FighterForSale(uint fighterId, uint price);
@@ -115,6 +115,7 @@ contract Dojo is Ownable, ERC1155 {
     function payForGold() public payable {
         require(msg.value == 0.01 ether, "You must pay at least 0.01 ETH to get gold");
         _mint(msg.sender, GOLD, 10, "");
+        emit NewGold(10, "Gold");
     }
 
     function payToCreateFighter() public hasEnoughGold(5) {

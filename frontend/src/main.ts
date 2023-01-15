@@ -7,6 +7,8 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { vfmPlugin } from 'vue-final-modal'
 import "vue-connect-wallet/dist/style.css";
 import VueCookies from 'vue3-cookies'
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -20,4 +22,5 @@ createApp(App)
     }))
     .use(pinia)
     .use(VueCookies)
+    .use(Toast)
     .mount('#app')
