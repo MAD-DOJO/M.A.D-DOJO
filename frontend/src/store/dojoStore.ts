@@ -106,7 +106,11 @@ export const dojoStore = defineStore('dojoStore',{
             const opponentId = opponentName.split("#")[1];
             console.log("OpponeentId : " ,opponentId);
             await contract.connect(provider.getSigner()).fight(fighterId, opponentId);
-            await this.loadFighters();
+        },
+
+        async heal(fighterName: string) {
+            const fighterId = fighterName.split("#")[1];
+            await contract.connect(provider.getSigner()).payToHealFighter(fighterId);
         }
     },
     persist: true,
