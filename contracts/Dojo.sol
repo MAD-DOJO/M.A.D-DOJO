@@ -72,7 +72,7 @@ contract Dojo is Ownable, ERC1155 {
 
     enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
 
-    //TODO: Ajouter les images stockées sur IPFS pour les Fighters
+    //TODO: Add images stored on IPFS for the fighters
     constructor() ERC1155("https://bafybeiajtvxmsvidnwxj5ezsurtphdgdy47uuki34ma3byi3vt42l4iaom.ipfs.nftstorage.link/{id}.json") {}
 
     uint256 public constant GOLD = 0;
