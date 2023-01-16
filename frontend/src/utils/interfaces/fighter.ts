@@ -11,6 +11,7 @@ export interface Fighter{
     wins: number;
     losses: number;
     wounds: number;
+    isOnSale: boolean;
 }
 
 export enum Rank {

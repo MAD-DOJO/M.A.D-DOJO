@@ -37,20 +37,7 @@ export const dojoStore = defineStore('dojoStore',{
         async loadFighters() {
             const fighters = await contract.connect(provider.getSigner()).getMyFighters();
             this.fighters = fighters.map((fighter: any) => {
-                return {
-                    name: fighter.name,
-                    level: fighter.level,
-                    xp: fighter.xp,
-                    xpToNextLevel: fighter.xpToNextLevel,
-                    uri: fighter.uri,
-                    rank: Rank[fighter.rank],
-                    strength: fighter.strength.toNumber(),
-                    speed: fighter.speed.toNumber(),
-                    endurance: fighter.endurance.toNumber(),
-                    wins: fighter.wins.toNumber(),
-                    losses: fighter.losses.toNumber(),
-                    wounds: fighter.wounds.toNumber(),
-                }
+                return this.mapFighter(fighter);
             });
         },
         async loadFighterCount() {
@@ -93,22 +80,8 @@ export const dojoStore = defineStore('dojoStore',{
         async loadAllFightersByLevel(level: number) {
             const fighterList = await contract.connect(provider.getSigner()).getAllFighters();
             return fighterList.map((fighter: any) => {
-                if(fighter.level === level){
-                    return {
-                        name: fighter.name,
-                        level: fighter.level,
-                        xp: fighter.xp,
-                        xpToNextLevel: fighter.xpToNextLevel,
-                        uri: fighter.uri,
-                        rank: Rank[fighter.rank],
-                        strength: fighter.strength.toNumber(),
-                        speed: fighter.speed.toNumber(),
-                        endurance: fighter.endurance.toNumber(),
-                        wins: fighter.wins.toNumber(),
-                        losses: fighter.losses.toNumber(),
-                        wounds: fighter.wounds.toNumber(),
-                    }
-                }
+                if(fighter.level === level)
+                    return this.mapFighter(fighter);
             });
         },
         async fight(fighterName: string, opponentName: string) {
@@ -123,6 +96,24 @@ export const dojoStore = defineStore('dojoStore',{
         async levelUp(fighterName: string) {
             const fighterId = fighterName.split("#")[1];
             await contract.connect(provider.getSigner()).levelUp(fighterId);
+        },
+        mapFighter(fighter: any) {
+            console.log(fighter);
+            return {
+                name: fighter.name,
+                level: fighter.level,
+                xp: fighter.xp,
+                xpToNextLevel: fighter.xpToNextLevel,
+                uri: fighter.uri,
+                rank: Rank[fighter.rank],
+                strength: fighter.strength.toNumber(),
+                speed: fighter.speed.toNumber(),
+                endurance: fighter.endurance.toNumber(),
+                wins: fighter.stats.wins.toNumber(),
+                losses: fighter.stats.losses.toNumber(),
+                wounds: fighter.wounds.toNumber(),
+                isOnSale: fighter.isOnSale,
+            }
         }
     },
     persist: true,
