@@ -1,16 +1,16 @@
 <template>
   <div class="grid grid-cols-2 gap-2">
-    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5" style="height:75vh;">
-      <h5 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Vos combattants</h5>
+    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5" style="height:75vh;">
+      <h5 class="mb-2 text-3xl font-bold text-gray-900 text-white">Vos combattants</h5>
       <div class="grid grid-cols-4 gap-4 overflow-auto" style="height:40vh;">
       <div v-for="fighter in store.fighters" class="mr-2 mt-2">
         <FighterCard :fighter="fighter" v-on:click="selectedFighter = fighter" v-bind:class="selectedFighter === fighter ? 'border-green-600' : ''" class="hover:bg-gray-600"/>
       </div>
       </div>
     </div>
-    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5">
-      <h5 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Combattants adverses</h5>
-      <h6 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white" v-if="!selectedFighter">Selectionnez un de vos combattant pour pouvoir vous battre contre des combattants du même level</h6>
+    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5">
+      <h5 class="mb-2 text-3xl font-bold text-gray-900 text-white">Combattants adverses</h5>
+      <h6 class="mb-2 text-2xl font-bold text-gray-900 text-white" v-if="!selectedFighter">Selectionnez un de vos combattant pour pouvoir vous battre contre des combattants du même level</h6>
       <div class="grid grid-cols-4 gap-4 overflow-auto" style="height:40vh;">
         <div class="mr-2 mt-2" v-for="opponent in opponentList">
           <FighterCard :fighter="opponent" v-on:click="selectedOpponent = opponent" v-bind:class="selectedOpponent === opponent ? 'border-green-600' : ''" class="hover:bg-gray-600"/>

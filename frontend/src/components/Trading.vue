@@ -29,7 +29,7 @@
       Sell Fighter
     </button>
   </div>
-  <div v-if="sellOffers" class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700 m-5">
+  <div v-if="sellOffers" class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5">
     <div class="grid grid-cols-6 gap-2 m-5" v-for="sell in sellOffers">
       <div class="bg-gray-600 rounded">
         <div class="text-center text-white">
