@@ -50,7 +50,7 @@ export default defineComponent({
   watch: {
     selectedFighter: function (fighter) {
       this.store.loadAllFightersByLevel(fighter.level).then((fighters) => {
-        this.opponentList = fighters.filter(f => f.name !== fighter.name);
+        this.opponentList = fighters.filter(fighter => !this.store.fighters.map(fighter => fighter.name).includes(fighter.name))
       });
     }
   }
