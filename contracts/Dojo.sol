@@ -238,7 +238,8 @@ contract Dojo is Ownable, ERC1155 {
         fighterToOwner[_fighterId] = msg.sender;
         ownerFighterCount[fighterSellOffers[_fighterId].seller]--;
         ownerFighterCount[msg.sender]++;
-        _burn(msg.sender, GOLD, fighterSellOffers[_fighterId].price);
+        // _burn(msg.sender, GOLD, fighterSellOffers[_fighterId].price);
+        _safeTransferFrom(msg.sender, fighterSellOffers[_fighterId].seller, GOLD, fighterSellOffers[_fighterId].price, "");
         fighters[_fighterId].isOnSale = false;
         emit FighterBought(_fighterId, msg.sender, fighterSellOffers[_fighterId].price);
         for (uint i = 0; i < sellOffers.length; i++) {

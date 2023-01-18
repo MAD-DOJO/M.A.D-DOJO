@@ -106,7 +106,6 @@ export const dojoStore = defineStore('dojoStore',{
             await contract.connect(provider.getSigner()).levelUp(fighterId);
         },
         mapFighter(fighter: any) {
-            console.log(fighter);
             return {
                 name: fighter.name,
                 level: fighter.level,
@@ -122,6 +121,10 @@ export const dojoStore = defineStore('dojoStore',{
                 wounds: fighter.wounds.toNumber(),
                 isOnSale: fighter.isOnSale,
             }
+        },
+        async loadFighter(tokenId: number) {
+            const fighter = await contract.connect(provider.getSigner()).getFighter(tokenId);
+            return this.mapFighter(fighter);
         }
     },
     persist: true,
@@ -133,6 +136,7 @@ contract.on('NewFighter', (fighterId, name) => {
         timeout: 5000,
     });
     dojoStore().loadFighters().then(r => console.log(r));
+    dojoStore().loadGold().then(r => console.log(r));
 });
 contract.on('NewGold', (amount, name) => {
     toast.success(`You receive : ${amount} ${name}`, {
@@ -147,18 +151,21 @@ contract.on('FighterLevelUp', (fighterId, bonus, stat) => {
         timeout: 5000,
     });
     dojoStore().loadFighters().then(r => console.log(r));
+    dojoStore().loadGold().then(r => console.log(r));
 });
 contract.on('FighterFightResult', (fighterId, opponentId, result) => {
     toast.success(`Fighter ${fighterId} fight against ${opponentId} and the result is ${result}`, {
         position: POSITION.TOP_CENTER,
         timeout: 5000,
     });
+    dojoStore().loadFighters().then(r => console.log(r));
 });
 contract.on('FighterForSale', (fighterId, price) => {
     toast.success(`Fighter with id: ${fighterId} is now for sale for ${price} gold`, {
         position: POSITION.TOP_CENTER,
         timeout: 5000,
     });
+    dojoStore().loadFighters().then(r => console.log(r));
 });
 contract.on('FighterBought', (fighterId, seller, price) => {
     toast.success(`Fighter with id: ${fighterId} is now yours for ${price} gold`, {
@@ -166,6 +173,7 @@ contract.on('FighterBought', (fighterId, seller, price) => {
         timeout: 5000,
     });
     dojoStore().loadFighters().then(r => console.log(r));
+    dojoStore().loadGold().then(r => console.log(r));
 });
 
 contract.on('FighterIsHealed', (fighterId) => {
@@ -174,4 +182,5 @@ contract.on('FighterIsHealed', (fighterId) => {
         timeout: 5000,
     });
     dojoStore().loadFighters().then(r => console.log(r));
+    dojoStore().loadGold().then(r => console.log(r));
 });

@@ -20,16 +20,13 @@
         </a>
       </div>
     </div>
-    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5">
+    <div class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5" >
       <h5 class="mb-2 text-3xl font-bold text-gray-900 text-white">Information du Dojo</h5>
       <p class="mb-5 text-base text-gray-500 sm:text-lg text-gray-400">Gold : {{ store.gold }}</p>
-      <p class="mb-5 text-base text-gray-500 sm:text-lg text-gray-400">Nombre de combattant : {{ store.fighterCount }}</p>
-      <div class="items-center justify-center space-y-4 sm:flex sm:space-y-0 sm:space-x-4">
-        <a class="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 text-white rounded-lg inline-flex items-center justify-center px-4 py-2.5 bg-gray-700 hover:bg-gray-600 focus:ring-gray-700"
-           href="#">
-          <div class="text-left">
-            <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="store.payForGold()">Payer 0.01 ETH pour 10 Golds</div>
-          </div>
+      <p class="mb-5 text-base text-gray-500 sm:text-lg text-gray-400" >Nombre de combattant : {{ store.fighterCount }}</p>
+      <div class="justify-center align-text-bottom space-y-4 sm:flex sm:space-y-0 sm:space-x-4 pt-5" >
+        <a class="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 text-white rounded-lg inline-flex items-center justify-center px-4 py-2.5 bg-gray-700 hover:bg-gray-600 focus:ring-gray-700" href="#">
+          <div class="-mt-1 font-sans text-sm font-semibold" v-on:click="store.payForGold()">Payer 0.01 ETH pour 10 Golds</div>
         </a>
       </div>
     </div>

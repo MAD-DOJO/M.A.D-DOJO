@@ -30,15 +30,41 @@
     </button>
   </div>
   <div v-if="sellOffers" class="p-4 text-center bg-white border rounded-lg shadow-md sm:p-8 bg-gray-800 border-gray-700 m-5">
-    <div class="grid grid-cols-6 gap-2 m-5" v-for="sell in sellOffers">
-      <div class="bg-gray-600 rounded">
-        <div class="text-center text-white">
-          <div class="text-2xl font-bold">Token id : {{ sell.tokenId }}</div>
-          <div class="text-2xl font-bold">Seller : {{ sell.seller }}</div>
-          <div class="text-2xl font-bold">Price : {{ sell.price }} Golds</div>
-          <button class="bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-300" v-on:click="buyFighter(sell.tokenId)">Buy</button>
-        </div>
-      </div>
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-6 py-3">
+              Token Id
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Seller
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Price
+            </th>
+            <th scope="col" class="px-6 py-3">
+              Acheter
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700" v-for="sell in sellOffers">
+            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+              {{ sell.tokenId }}
+            </th>
+            <td class="px-6 py-4">
+              {{ sell.seller }}
+            </td>
+            <td class="px-6 py-4">
+              {{ sell.price }} GOLD
+            </td>
+            <td class="px-6 py-4">
+              <button class="bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-300" v-on:click="buyFighter(sell.tokenId)">Buy</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -57,7 +83,7 @@ export default {
   data() {
     return {
       store: dojoStore(),
-      sellOffers: [],
+      sellOffers: undefined,
       showSelectFighterModal: false,
       selectedFighter: null,
       price: 0,
