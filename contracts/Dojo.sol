@@ -10,13 +10,13 @@ contract Dojo is Ownable, ERC1155 {
 
     using SafeMath for uint256;
 
-    event NewFighter(uint fighterId, string name);
-    event NewGold(uint amount, string name);
-    event FighterLevelUp(uint fighterId, uint bonus, uint stat);
-    event FighterFightResult(uint fighterId, uint opponentId, string result);
-    event FighterForSale(uint fighterId, uint price);
-    event FighterBought(uint fighterId, address buyer, uint price);
-    event FighterIsHealed(uint fighterId);
+    event NewFighter(uint indexed fighterId, string indexed  name);
+    event NewGold(uint indexed amount, string indexed name);
+    event FighterLevelUp(uint indexed fighterId, uint indexed bonus, uint indexed stat);
+    event FighterFightResult(uint indexed fighterId, uint indexed opponentId, string indexed result);
+    event FighterForSale(uint indexed fighterId, uint indexed price);
+    event FighterBought(uint indexed fighterId, address indexed buyer, uint indexed price);
+    event FighterIsHealed(uint indexed fighterId);
 
     modifier onlyOwnerOf(uint _fighterId) {
         require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
@@ -37,6 +37,8 @@ contract Dojo is Ownable, ERC1155 {
         require(fighters[_fighterId].isOnSale == false, "Fighter is on sale");
         _;
     }
+
+    enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
 
     struct Fighter {
         string name;
@@ -64,12 +66,9 @@ contract Dojo is Ownable, ERC1155 {
         uint256 price;
     }
 
+    mapping(uint256 => address) public fighterToOwner;
+    mapping(address => uint) public ownerFighterCount;
     mapping(uint256 => FighterSell) public fighterSellOffers;
-
-    enum Rank {Beginner, Novice, Apprentice, Adept, Master, GrandMaster, Legendary}
-
-    //TODO: Add images stored on IPFS for the fighters
-    constructor() ERC1155("https://bafybeiajtvxmsvidnwxj5ezsurtphdgdy47uuki34ma3byi3vt42l4iaom.ipfs.nftstorage.link/{id}.json") {}
 
     uint256 public constant GOLD = 0;
     uint256 public constant FIGHTER = 1;
@@ -77,8 +76,7 @@ contract Dojo is Ownable, ERC1155 {
     Fighter[] public fighters;
     FighterSell[] public sellOffers;
 
-    mapping (uint256 => address) fighterToOwner;
-    mapping(address => uint) ownerFighterCount;
+    constructor() ERC1155("https://bafybeiajtvxmsvidnwxj5ezsurtphdgdy47uuki34ma3byi3vt42l4iaom.ipfs.nftstorage.link/{id}.json") {}
 
     function _createFighter() internal {
         uint256 _id = fighters.length;
@@ -100,7 +98,7 @@ contract Dojo is Ownable, ERC1155 {
         return (_strength, _speed, _endurance);
     }
 
-    function createFighter() public {
+    function createFighter() external {
         if (ownerFighterCount[msg.sender] == 0) {
             _createFighter();
         }else{
@@ -108,18 +106,18 @@ contract Dojo is Ownable, ERC1155 {
         }
     }
 
-    function payForGold() public payable {
+    function payForGold() external payable {
         require(msg.value == 0.01 ether, "You must pay at least 0.01 ETH to get gold");
         _mint(msg.sender, GOLD, 10, "");
         emit NewGold(10, "Gold");
     }
 
-    function payToCreateFighter() public hasEnoughGold(5) {
+    function payToCreateFighter() external hasEnoughGold(5) {
         _burn(msg.sender, GOLD, 5);
         _createFighter();
     }
 
-    function payToHealFighter(uint256 _fighterId) public hasEnoughGold(2) onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
+    function payToHealFighter(uint256 _fighterId) external hasEnoughGold(2) onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
         require(fighters[_fighterId].wounds == 3, "Your fighter is not wounded");
         _burn(msg.sender, GOLD, 2);
         fighters[_fighterId].wounds = 0;
@@ -167,7 +165,7 @@ contract Dojo is Ownable, ERC1155 {
         return fighters;
     }
 
-    function fight(uint256 _fighterId, uint256 _opponentId) public onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
+    function fight(uint256 _fighterId, uint256 _opponentId) external onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
         require(fighterToOwner[_opponentId] != msg.sender, "You can't fight yourself");
         require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
         require(fighters[_fighterId].level == fighters[_opponentId].level, "You can't fight a fighter with a different level");
@@ -190,7 +188,7 @@ contract Dojo is Ownable, ERC1155 {
         return fighters[_fighterId].strength.add(fighters[_fighterId].speed).add(fighters[_fighterId].endurance);
     }
 
-    function levelUp(uint256 _fighterId) public onlyOwnerOf(_fighterId) hasEnoughXP(_fighterId) hasEnoughGold(1) isNotOnSale(_fighterId) {
+    function levelUp(uint256 _fighterId) external onlyOwnerOf(_fighterId) hasEnoughXP(_fighterId) hasEnoughGold(1) isNotOnSale(_fighterId) {
         _burn(msg.sender, GOLD, 1);
         uint256 _seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, fighters.length)));
         uint256 _bonus = (_seed % 5) + 1;
@@ -220,7 +218,7 @@ contract Dojo is Ownable, ERC1155 {
         emit FighterLevelUp(_fighterId, _bonus, _stat);
     }
 
-    function sellFighter(uint256 _fighterId, uint256 _price) public onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
+    function sellFighter(uint256 _fighterId, uint256 _price) external onlyOwnerOf(_fighterId) isNotOnSale(_fighterId) {
         require(ownerFighterCount[msg.sender] > 1, "You need to have more than 1 fighter");
         require(fighters[_fighterId].wounds < 3, "Your fighter is wounded, you need to heal him");
         require(_price > 0, "Price must be greater than 0");
@@ -230,7 +228,7 @@ contract Dojo is Ownable, ERC1155 {
         emit FighterForSale(_fighterId, _price);
     }
 
-    function buyFighter(uint256 _fighterId) public hasEnoughGold(fighterSellOffers[_fighterId].price) {
+    function buyFighter(uint256 _fighterId) external hasEnoughGold(fighterSellOffers[_fighterId].price) {
         require(fighterSellOffers[_fighterId].price > 0, "This fighter is not for sale");
         require(fighterSellOffers[_fighterId].seller != msg.sender, "You can't buy your own fighter");
         require(fighters[_fighterId].isOnSale == true, "The fighter is not for sale");
