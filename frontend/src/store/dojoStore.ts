@@ -82,6 +82,8 @@ export const dojoStore = defineStore('dojoStore',{
             return fighterList.map((fighter: any) => {
                 if(fighter.level === level)
                     return this.mapFighter(fighter);
+            }).filter(function(element: any) {
+                return element !== undefined;
             });
         },
         async fight(fighterName: string, opponentName: string) {
