@@ -15,6 +15,7 @@
           <div class="hidden md:flex items-center space-x-1">
             <router-link :to="'Dojo'" class="py-4 px-2 text-gray-500 hover:text-gray-900">Dojo</router-link>
             <router-link :to="'Tournaments'" class="py-4 px-2 text-gray-500 hover:text-gray-900">Tournaments</router-link>
+            <router-link :to="'Ranking'" class="py-4 px-2 text-gray-500 hover:text-gray-900">Ranking</router-link>
             <router-link :to="'Trading'" class="py-4 px-2 text-gray-500 hover:text-gray-900">Trading</router-link>
           </div>
         </div>

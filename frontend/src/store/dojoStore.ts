@@ -86,6 +86,12 @@ export const dojoStore = defineStore('dojoStore',{
                 return element !== undefined;
             });
         },
+        async getAllFighters() {
+            const fighterList = await contract.connect(provider.getSigner()).getAllFighters();
+            return fighterList.map((fighter: any) => {
+                return this.mapFighter(fighter);
+            });
+        },
         async fight(fighterName: string, opponentName: string) {
             const fighterId = fighterName.split("#")[1];
             const opponentId = opponentName.split("#")[1];
