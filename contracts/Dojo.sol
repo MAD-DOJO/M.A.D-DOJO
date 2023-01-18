@@ -10,13 +10,13 @@ contract Dojo is Ownable, ERC1155 {
 
     using SafeMath for uint256;
 
-    event NewFighter(uint indexed fighterId, string indexed  name);
-    event NewGold(uint indexed amount, string indexed name);
-    event FighterLevelUp(uint indexed fighterId, uint indexed bonus, uint indexed stat);
-    event FighterFightResult(uint indexed fighterId, uint indexed opponentId, string indexed result);
-    event FighterForSale(uint indexed fighterId, uint indexed price);
-    event FighterBought(uint indexed fighterId, address indexed buyer, uint indexed price);
-    event FighterIsHealed(uint indexed fighterId);
+    event NewFighter(uint fighterId, string  name);
+    event NewGold(uint amount, string name);
+    event FighterLevelUp(uint fighterId, uint bonus, uint  stat);
+    event FighterFightResult(uint fighterId, uint opponentId, string result);
+    event FighterForSale(uint fighterId, uint price);
+    event FighterBought(uint fighterId, address buyer, uint price);
+    event FighterIsHealed(uint fighterId);
 
     modifier onlyOwnerOf(uint _fighterId) {
         require(msg.sender == fighterToOwner[_fighterId], "You are not the owner of this fighter");
