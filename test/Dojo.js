@@ -33,8 +33,8 @@ describe("Dojo Smart Contract Test", function () {
             const fighter = await hardhatDojo.getFighter(0);
             expect(fighter.name).to.equal("Fighter#0");
             expect(fighter.level).to.equal(1);
-            expect(fighter.wins).to.equal(0);
-            expect(fighter.losses).to.equal(0);
+            expect(fighter.stats.wins).to.equal(0);
+            expect(fighter.stats.losses).to.equal(0);
             expect(fighter.wounds).to.equal(0);
         });
         it('should reverts if the contract is called by a user who already has a fighter', async function () {
@@ -179,7 +179,6 @@ describe("Dojo Smart Contract Test", function () {
                     }
                 }
             }
-            console.log(fighterScores);
         });
 
         describe("Leveling up", function () {

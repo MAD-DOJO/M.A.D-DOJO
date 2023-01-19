@@ -21,6 +21,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../components/Tournaments.vue"),
     },
     {
+        path: "/trading",
+        name: "Trading",
+        component: () => import("../components/Trading.vue"),
+    },
+    {
         path: "/ranking",
         name: "Ranking",
         component: () => import("../components/Ranking.vue"),

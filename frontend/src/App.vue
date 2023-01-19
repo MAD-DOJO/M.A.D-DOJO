@@ -15,7 +15,7 @@ export default defineComponent({
   },
   data(){
     return {
-      dojoStore: dojoStore()
+      dojoStore: dojoStore(),
     }
   },
 })
