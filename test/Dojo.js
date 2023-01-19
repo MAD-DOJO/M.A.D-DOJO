@@ -179,7 +179,6 @@ describe("Dojo Smart Contract Test", function () {
                     }
                 }
             }
-            console.log(fighterScores);
         });
 
         describe("Leveling up", function () {

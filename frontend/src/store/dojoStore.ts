@@ -6,8 +6,13 @@ import {POSITION, useToast} from "vue-toastification";
 
 const toast = useToast();
 
+import abi from "../contract-abi.json";
+
+const contractABI = abi;
+const contractAddress = import.meta.env.VITE_DOJO_CONTRACT;
+
 const provider = new ethers.providers.Web3Provider(window.ethereum);
-const contract = new ethers.Contract(import.meta.env.VITE_DOJO_CONTRACT || '', Dojo.abi, provider);
+const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
 export const dojoStore = defineStore('dojoStore',{
     state: () => {
@@ -103,7 +108,7 @@ export const dojoStore = defineStore('dojoStore',{
         },
         async levelUp(fighterName: string) {
             const fighterId = fighterName.split("#")[1];
-            await contract.connect(provider.getSigner()).levelUp(fighterId);
+            await contract.connect(provider.getSigner()).levelUp(fighterId, {gasLimit: 1000000});
         },
         mapFighter(fighter: any) {
             return {

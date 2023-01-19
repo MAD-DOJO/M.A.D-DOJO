@@ -40,6 +40,113 @@
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "FighterBought",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fighterId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "opponentId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "result",
+        "type": "string"
+      }
+    ],
+    "name": "FighterFightResult",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fighterId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "FighterForSale",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fighterId",
+        "type": "uint256"
+      }
+    ],
+    "name": "FighterIsHealed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fighterId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bonus",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "stat",
+        "type": "uint256"
+      }
+    ],
+    "name": "FighterLevelUp",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fighterId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "string",
         "name": "name",
         "type": "string"
@@ -54,7 +161,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "goldId",
+        "name": "amount",
         "type": "uint256"
       },
       {
@@ -180,6 +287,32 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "FIGHTER",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "GOLD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -228,10 +361,262 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_fighterId",
+        "type": "uint256"
+      }
+    ],
+    "name": "buyFighter",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "createFighter",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_fighterId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_opponentId",
+        "type": "uint256"
+      }
+    ],
+    "name": "fight",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "fighterSellOffers",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "fighterToOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "fighters",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "uint32",
+        "name": "level",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "xp",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "xpToNextLevel",
+        "type": "uint32"
+      },
+      {
+        "internalType": "string",
+        "name": "uri",
+        "type": "string"
+      },
+      {
+        "internalType": "enum Dojo.Rank",
+        "name": "rank",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "strength",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "speed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "endurance",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "wins",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "losses",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Dojo.FighterStats",
+        "name": "stats",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "wounds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isOnSale",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllFighters",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint32",
+            "name": "level",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "xp",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "xpToNextLevel",
+            "type": "uint32"
+          },
+          {
+            "internalType": "string",
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Dojo.Rank",
+            "name": "rank",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "strength",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "speed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "endurance",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "wins",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "losses",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Dojo.FighterStats",
+            "name": "stats",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint256",
+            "name": "wounds",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isOnSale",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct Dojo.Fighter[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -257,6 +642,26 @@
             "type": "uint32"
           },
           {
+            "internalType": "uint32",
+            "name": "xp",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "xpToNextLevel",
+            "type": "uint32"
+          },
+          {
+            "internalType": "string",
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Dojo.Rank",
+            "name": "rank",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "strength",
             "type": "uint256"
@@ -272,19 +677,31 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
-            "name": "wins",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "losses",
-            "type": "uint256"
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "wins",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "losses",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Dojo.FighterStats",
+            "name": "stats",
+            "type": "tuple"
           },
           {
             "internalType": "uint256",
             "name": "wounds",
             "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isOnSale",
+            "type": "bool"
           }
         ],
         "internalType": "struct Dojo.Fighter",
@@ -315,13 +732,19 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getFighters",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_fighterId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getFighterScore",
     "outputs": [
       {
-        "internalType": "uint256[]",
+        "internalType": "uint256",
         "name": "",
-        "type": "uint256[]"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -360,6 +783,93 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getMyFighters",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint32",
+            "name": "level",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "xp",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "xpToNextLevel",
+            "type": "uint32"
+          },
+          {
+            "internalType": "string",
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Dojo.Rank",
+            "name": "rank",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "strength",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "speed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "endurance",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "wins",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "losses",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Dojo.FighterStats",
+            "name": "stats",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint256",
+            "name": "wounds",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isOnSale",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct Dojo.Fighter[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -373,6 +883,36 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSellOffers",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Dojo.FighterSell[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -403,6 +943,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_fighterId",
+        "type": "uint256"
+      }
+    ],
+    "name": "levelUp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "owner",
     "outputs": [
@@ -410,6 +963,25 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "ownerFighterCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -513,6 +1085,53 @@
     "name": "safeTransferFrom",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_fighterId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_price",
+        "type": "uint256"
+      }
+    ],
+    "name": "sellFighter",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "sellOffers",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-etherscan");
 require('dotenv').config();
 require('solidity-coverage');
 
-const { API_URL, PRIVATE_KEY } = process.env;
+const { ALCHEMY_API_KEY, GOERLI_PRIVATE_KEY } = process.env;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -19,8 +19,8 @@ module.exports = {
   },
   networks: {
     goerli: {
-      url: API_URL,
-      accounts: [`0x${PRIVATE_KEY}`]
+      url: `https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [`0x${GOERLI_PRIVATE_KEY}`]
     }
   },
   etherscan: {
